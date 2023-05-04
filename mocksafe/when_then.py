@@ -2,8 +2,8 @@ from __future__ import annotations
 from typing import Generic, TypeVar
 from collections.abc import Callable
 from mocksafe.custom_types import CallMatcher
-from mocksafe.mock import MethodMock
-from mocksafe.call_matchers import AnyCallMatcher
+from mocksafe.mock import MethodMock, ResultsProvider
+from mocksafe.call_matchers import AnyCallMatcher, CustomCallMatcher
 
 
 T = TypeVar("T")
@@ -26,6 +26,9 @@ class WhenStubber(Generic[T]):
     def called_with(self, _: T) -> LastCallStubber[T]:
         return LastCallStubber(self._method_mock)
 
+    def call_matching(self, call_lambda: Callable[..., bool]) -> MatchCallStubber[T]:
+        return MatchCallStubber(self._method_mock, CustomCallMatcher(call_lambda))
+
 
 class MatchCallStubber(Generic[T]):
     def __init__(self, method_mock: MethodMock[T], matcher: CallMatcher):
@@ -35,6 +38,12 @@ class MatchCallStubber(Generic[T]):
     def then_return(self, result: T, *consecutive_results: T) -> None:
         results: list[T] = [result, *consecutive_results]
         self._method_mock.add_stub(self._matcher, results)
+
+    def then_raise(self, error: BaseException) -> None:
+        self._method_mock.raise_error(self._matcher, error)
+
+    def then(self, result: ResultsProvider) -> None:
+        self._method_mock.custom_result(self._matcher, result)
 
 
 class LastCallStubber(Generic[T]):
