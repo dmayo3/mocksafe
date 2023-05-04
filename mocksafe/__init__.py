@@ -1,1 +1,3 @@
-from mocksafe.safe_mock import mock, when, that
+from mocksafe.mock import mock
+from mocksafe.when_then import when
+from mocksafe.that import that
