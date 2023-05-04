@@ -1,8 +1,1 @@
-from mocksafe.safe_mock import (
-    safe_mock,
-    stub,
-    num_calls,
-    last_call,
-    called,
-    stub_implementation,
-)
+from mocksafe.safe_mock import mock, when, that
