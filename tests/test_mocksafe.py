@@ -1,5 +1,5 @@
 import pytest
-from mocksafe import mock, when, that
+from mocksafe import mock, when, that, spy
 
 
 class MyClass:
@@ -197,11 +197,23 @@ def test_stub_called_with_args_and_custom_result():
     assert mock_object.foo("something else") == 0
 
 
-@pytest.mark.xfail(strict=True, reason="Not yet implemented")
+def test_capture_last_call():
+    mock_object: MyClass = mock(MyClass)
+
+    mock_object.foo("a", baz=1)
+
+    args, kwargs = spy(mock_object.foo).last_call
+
+    assert args[0] == "a"
+    assert kwargs["baz"] == 1
+
+
 def test_stub_consecutive_calls_with_error():
-    assert False
+    mock_object: MyClass = mock(MyClass)
 
+    when(mock_object.foo).any_call().use_side_effects(5, 10, ValueError("Boom"))
 
-@pytest.mark.xfail(strict=True, reason="Not yet implemented")
-def test_stub_return_when_arg_matches():
-    assert False
+    assert mock_object.foo("a") == 5
+    assert mock_object.foo("b") == 10
+    with pytest.raises(ValueError):
+        mock_object.foo("c")

@@ -32,32 +32,26 @@ class MethodStub(Generic[T]):
     def name(self) -> MethodName:
         return self._name
 
-    def add(self, matcher: CallMatcher, results: list[T]) -> None:
-        self.add_effect(matcher, CannedResults(results))
+    def add(self, matcher: CallMatcher, effects: list[T | BaseException]) -> None:
+        self.add_effect(matcher, CannedEffects(effects))
 
     def add_effect(self, matcher: CallMatcher, effect: ResultsProvider) -> None:
         self._stubs.append((matcher, effect))
 
 
-class CannedResults(Generic[T]):
-    def __init__(self, results: list[T]):
-        self._results = results
+class CannedEffects(Generic[T]):
+    def __init__(self, effects: list[T]):
+        self._effects = effects
 
     def __call__(self, *args, **kwargs) -> T:
-        if len(self._results) == 1:
-            return self._results[0]
-        return self._results.pop(0)
+        if len(self._effects) == 1:
+            effect = self._effects[0]
+        else:
+            effect = self._effects.pop(0)
+
+        if isinstance(effect, BaseException):
+            raise effect
+        return effect
 
     def __repr__(self) -> str:
-        return str(self._results[0])
-
-
-class ErrorResult(Generic[T]):
-    def __init__(self, error: BaseException):
-        self._error = error
-
-    def __call__(self, *args, **kwargs) -> T:
-        raise self._error
-
-    def __repr__(self) -> str:
-        return str(self._error)
+        return str(self._effects[0])

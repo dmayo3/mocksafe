@@ -36,14 +36,16 @@ class MatchCallStubber(Generic[T]):
         self._matcher = matcher
 
     def then_return(self, result: T, *consecutive_results: T) -> None:
-        results: list[T] = [result, *consecutive_results]
-        self._method_mock.add_stub(self._matcher, results)
+        self.use_side_effects(result, *consecutive_results)
 
     def then_raise(self, error: BaseException) -> None:
-        self._method_mock.raise_error(self._matcher, error)
+        self.use_side_effects(error)
 
     def then(self, result: ResultsProvider) -> None:
         self._method_mock.custom_result(self._matcher, result)
+
+    def use_side_effects(self, *side_effects: T | BaseException) -> None:
+        self._method_mock.add_stub(self._matcher, list(side_effects))
 
 
 class LastCallStubber(Generic[T]):
@@ -51,11 +53,13 @@ class LastCallStubber(Generic[T]):
         self._method_mock = method_mock
 
     def then_return(self, result: T, *consecutive_results: T) -> None:
-        results: list[T] = [result, *consecutive_results]
-        self._method_mock.stub_last_call(results)
+        self.use_side_effects(result, *consecutive_results)
 
     def then_raise(self, error: BaseException) -> None:
-        self._method_mock.raise_for_last_call(error)
+        self.use_side_effects(error)
 
     def then(self, result: ResultsProvider) -> None:
         self._method_mock.custom_result_for_last_call(result)
+
+    def use_side_effects(self, *side_effects: T | BaseException) -> None:
+        self._method_mock.stub_last_call(list(side_effects))

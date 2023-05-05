@@ -11,7 +11,7 @@ MockSafe was created out of disappointment with existing options such as `unitte
 First import the following in your test:
 
 ```python
-from mocksafe import mock, when, that
+from mocksafe import mock, when, that, spy
 ```
 
 Suppose you have a simple class that you want to mock that looks like this:
@@ -91,6 +91,14 @@ when(mock_object.foo)\
     .then_raise(ValueError("Invalid argument"))
 ```
 
+To return a mixture of results and exceptions over consecutive calls:
+
+```python
+when(mock_object.foo)\
+    .called_with(mock_object.foo("bad"))\
+    .use_side_effects(1, 2, 3, ValueError("Invalid argument"), 5, 6)
+```
+
 To implement a custom result with a lambda function:
 
 ```python
@@ -98,6 +106,21 @@ when(mock_object.foo)\
     .called_with(mock_object.foo("custom"))\
     .then(lambda bar, baz=123: len(bar) + baz * 2)
 ```
+
+To get the details of a particular call to make more precise assertions:
+
+```python
+args = spy(mock_object.foo).nth_call(1)
+
+assert len(args) == 1
+
+args, kwargs = spy(mock_object.foo).last_call
+
+assert args[0] == "abc"
+assert kwargs.get("baz") == 7
+```
+
+The `spy()` function is just a synonym for `that()`.
 
 ## Development
 

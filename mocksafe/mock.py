@@ -4,7 +4,7 @@ from typing import Generic, TypeVar, cast
 from collections.abc import Callable
 from mocksafe.custom_types import MethodName, CallMatcher, Call
 from mocksafe.spy import MethodSpy
-from mocksafe.stub import MethodStub, ErrorResult, ResultsProvider
+from mocksafe.stub import MethodStub, ResultsProvider
 from mocksafe.call_matchers import ExactCallMatcher
 
 
@@ -67,19 +67,12 @@ class MethodMock(Generic[T]):
     def name(self) -> MethodName:
         return self._stub.name
 
-    def add_stub(self, matcher: CallMatcher, results: list[T]) -> None:
-        self._stub.add(matcher, results)
+    def add_stub(self, matcher: CallMatcher, effects: list[T | BaseException]) -> None:
+        self._stub.add(matcher, effects)
 
-    def raise_error(self, matcher: CallMatcher, error: BaseException) -> None:
-        self.custom_result(matcher, ErrorResult(error))
-
-    def stub_last_call(self, results: list[T]) -> None:
+    def stub_last_call(self, effects: list[T | BaseException]) -> None:
         matcher = call_equal_to(self._spy.pop_call())
-        self._stub.add(matcher, results)
-
-    def raise_for_last_call(self, error: BaseException) -> None:
-        matcher = call_equal_to(self._spy.pop_call())
-        self.custom_result(matcher, ErrorResult(error))
+        self._stub.add(matcher, effects)
 
     def custom_result_for_last_call(self, custom: ResultsProvider) -> None:
         matcher = call_equal_to(self._spy.pop_call())
