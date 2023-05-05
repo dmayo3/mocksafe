@@ -73,6 +73,14 @@ pip install tox
 tox [--parallel]
 ```
 
+If you want to use pyenv to manage and test with multiple python versions, install the `tox-pyenv` plugin:
+
+```
+pip install tox-pyenv
+```
+
+This should read from `.python-version`.
+
 ## Build
 
 To build this package, use [pypa-build](https://github.com/pypa/build):
