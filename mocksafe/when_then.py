@@ -53,3 +53,9 @@ class LastCallStubber(Generic[T]):
     def then_return(self, result: T, *consecutive_results: T) -> None:
         results: list[T] = [result, *consecutive_results]
         self._method_mock.stub_last_call(results)
+
+    def then_raise(self, error: BaseException) -> None:
+        self._method_mock.raise_for_last_call(error)
+
+    def then(self, result: ResultsProvider) -> None:
+        self._method_mock.custom_result_for_last_call(result)

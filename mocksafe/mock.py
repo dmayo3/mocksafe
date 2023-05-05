@@ -71,15 +71,22 @@ class MethodMock(Generic[T]):
         self._stub.add(matcher, results)
 
     def raise_error(self, matcher: CallMatcher, error: BaseException) -> None:
-        self._stub.add_effect(matcher, ErrorResult(error))
+        self.custom_result(matcher, ErrorResult(error))
+
+    def stub_last_call(self, results: list[T]) -> None:
+        matcher = call_equal_to(self._spy.pop_call())
+        self._stub.add(matcher, results)
+
+    def raise_for_last_call(self, error: BaseException) -> None:
+        matcher = call_equal_to(self._spy.pop_call())
+        self.custom_result(matcher, ErrorResult(error))
+
+    def custom_result_for_last_call(self, custom: ResultsProvider) -> None:
+        matcher = call_equal_to(self._spy.pop_call())
+        self.custom_result(matcher, custom)
 
     def custom_result(self, matcher: CallMatcher, custom: ResultsProvider) -> None:
         self._stub.add_effect(matcher, custom)
-
-    def stub_last_call(self, results: list[T]) -> None:
-        recorded_call = self._spy.pop_call()
-        matcher = call_equal_to(recorded_call)
-        self._stub.add(matcher, results)
 
     @property
     def calls(self) -> list[Call]:

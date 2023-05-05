@@ -175,14 +175,26 @@ def test_stub_call_matching():
     assert mock_object.foo("d", 3) == 0
 
 
-@pytest.mark.xfail(strict=True, reason="Not yet implemented")
 def test_stub_call_with_raises_error():
-    assert False
+    mock_object: MyClass = mock(MyClass)
+
+    when(mock_object.foo).called_with(mock_object.foo("bad")).then_raise(
+        ValueError("Invalid argument")
+    )
+
+    mock_object.foo("good")
+
+    with pytest.raises(ValueError):
+        mock_object.foo("bad")
 
 
-@pytest.mark.xfail(strict=True, reason="Not yet implemented")
 def test_stub_called_with_args_and_custom_result():
-    assert False
+    mock_object: MyClass = mock(MyClass)
+
+    when(mock_object.foo).called_with(mock_object.foo("custom")).then(lambda _: 99)
+
+    assert mock_object.foo("custom") == 99
+    assert mock_object.foo("something else") == 0
 
 
 @pytest.mark.xfail(strict=True, reason="Not yet implemented")
