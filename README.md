@@ -10,23 +10,28 @@ MockSafe was created out of disappointment with existing options such as `unitte
 
 First import the following in your test:
 
-```
+```python
 from mocksafe import mock, when, that
 ```
 
 Suppose you have a simple class that you want to mock that looks like this:
 
-```
+```python
 class MyClass:
     def foo(self, bar: str, baz: int = 123) -> int:
         return baz + len(bar)
 ```
 
-Here's a few basic ways you can mock it:
+Here's how you would mock it, and as you can see it has
+the original class as the type.
 
-```
+```python
 mock_object: MyClass = mock(MyClass)
+```
 
+Here are some basic assertions on the mock object:
+
+```python
 assert that(mock_object.foo).was_not_called
 
 result = mock_object.foo("hello")
@@ -38,29 +43,60 @@ assert that(mock_object.foo).last_call == ("hello",)
 assert that(mock_object.foo).nth_call(0) == ("hello",)
 ```
 
-Here we stub a result:
+Here's the simplest way to stub a result that isn't dependent on
+what the mocked method is called with:
 
+```python
+when(mock_object.foo).any_call().then_return(3)
+
+assert mock_object.foo("anything") == 3
 ```
-mock_object: MyClass = mock(MyClass)
 
-when(mock_object.foo).called_with(bar="hi", baz=456).then_return(789)
+Here we stub a result that's conditional on the arguments it's called with:
 
-assert mock_object.foo(bar="hello", baz=456) == 789
+```python
+when(mock_object.foo)\
+    .called_with(bar="hi", baz=456)\
+    .then_return(789)
+
+assert mock_object.foo(bar="hi", baz=456) == 789
+
+assert mock_object.foo("something else") == 0
+```
+
+If the function is called with keywords, you can assert the call results like so:
+
+```python
+mock_object.foo(bar="hello", baz=456)
 
 assert that(mock_object.foo).last_call == ((), dict(bar="hello", baz=456))
 ```
 
 To stub multiple consecutive results:
 
-```
-mock_object: MyClass = mock(MyClass)
-
+```python
 when(mock_object.foo).any_call().then_return(123, 456, 789)
 
 assert mock_object.foo("a") == 123
 assert mock_object.foo("b") == 456
 assert mock_object.foo("c") == 789
 assert mock_object.foo("d") == 789
+```
+
+To raise an exception:
+
+```python
+when(mock_object.foo)\
+    .called_with(mock_object.foo("bad"))\
+    .then_raise(ValueError("Invalid argument"))
+```
+
+To implement a custom result with a lambda function:
+
+```python
+when(mock_object.foo)\
+    .called_with(mock_object.foo("custom"))\
+    .then(lambda bar, baz=123: len(bar) + baz * 2)
 ```
 
 ## Development
