@@ -97,6 +97,7 @@ disable=
     cyclic-import,
     import-error,
     disallowed-name,
+    broad-exception-caught,
 
 
 [REPORTS]

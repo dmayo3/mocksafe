@@ -1,3 +1,4 @@
+from random import Random
 import pytest
 from mocksafe import mock, when, that, spy
 
@@ -134,6 +135,17 @@ def test_uncalled_called_with_stub_does_not_increment_call_count():
     assert that(mock_object.foo).num_calls == 0
 
 
+def test_stub_with_mixed_call_matching():
+    mock_object: MyClass = mock(MyClass)
+
+    when(mock_object.foo).any_call().then_return(1)
+    when(mock_object.foo).called_with(mock_object.foo("Y")).then_return(2)
+
+    assert mock_object.foo("X") == 1
+    assert mock_object.foo("Y") == 2
+    assert mock_object.foo("Z") == 1
+
+
 def test_stub_consecutive_calls():
     mock_object: MyClass = mock(MyClass)
     when(mock_object.foo).any_call().then_return(123, 456, 789)
@@ -217,3 +229,11 @@ def test_stub_consecutive_calls_with_error():
     assert mock_object.foo("b") == 10
     with pytest.raises(ValueError):
         mock_object.foo("c")
+
+
+def test_mock_random_class():
+    mock_random: Random = mock(Random)
+
+    when(mock_random.random).any_call().then_return(0.123)
+
+    assert mock_random.random() == 0.123

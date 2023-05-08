@@ -1,3 +1,4 @@
+from inspect import Signature
 from typing import Generic, TypeVar
 from collections.abc import Callable
 from mocksafe.custom_types import MethodName, CallMatcher
@@ -8,35 +9,68 @@ ResultsProvider = Callable[..., T]
 
 
 class MethodStub(Generic[T]):
-    def __init__(self, name: MethodName, result_type: type[T]):
+    def __init__(self, name: MethodName, result_type: type):
         self._name = name
         self._stubs: list[tuple[CallMatcher, ResultsProvider]] = []
         self._result_type = result_type
 
-    def __call__(self, *args, **kwargs) -> T:
+    def __call__(self, *args, **kwargs) -> T | None:
         call = (tuple(args), kwargs)
         for matcher, results in self._stubs:
             if matcher(call):
                 return results(*args, **kwargs)
 
-        default_value = self._result_type()
+        # No default return value has been stubbed, try to determine
+        # something sensible to return
+
+        default_value: T | None
+
+        if self._result_type == type(None):
+            default_value = None  # type: ignore
+        elif self._result_type == Signature.empty:
+            # There are no type annotations to infer type from.
+            # Fall back to None.
+            default_value = None
+        else:
+            # Try the type's constructor with zero args
+            # E.g. int() -> 0, bool() -> False, str() -> ""
+            try:
+                default_value = self._result_type()
+            except Exception:
+                default_value = None
+
         return default_value
 
     def __repr__(self) -> str:
         reps = []
         for matcher, results in self._stubs:
             reps.append(f"{matcher} -> {results}")
-        return ";".join(reps)
+        return "; ".join(reps)
 
     @property
     def name(self) -> MethodName:
         return self._name
 
     def add(self, matcher: CallMatcher, effects: list[T | BaseException]) -> None:
+        self._validate_effects(effects)
         self.add_effect(matcher, CannedEffects(effects))
 
     def add_effect(self, matcher: CallMatcher, effect: ResultsProvider) -> None:
-        self._stubs.append((matcher, effect))
+        self._stubs.insert(0, (matcher, effect))
+
+    def _validate_effects(self, effects: list[T | BaseException]):
+        # Runtime check in case static type checking allows an incompatible type
+        # to slip through
+        if self._result_type == Signature.empty:
+            return  # Nothing we can check
+
+        for e in effects:
+            if isinstance(e, BaseException):
+                continue
+            if not isinstance(e, self._result_type):
+                raise TypeError(
+                    f"Cannot use stub result {e} ({type(e)}) with the mocked method {self._name}(), the expected return type is: {self._result_type}."
+                )
 
 
 class CannedEffects(Generic[T]):

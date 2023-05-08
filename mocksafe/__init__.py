@@ -1,6 +1,17 @@
-from mocksafe.mock import mock
-from mocksafe.when_then import when
-from mocksafe.that import that
+"""
+The base mocksafe module.
 
-# Alias
-spy = that
+See:
+
+ - :meth:`mocksafe.mock`
+ - :meth:`mocksafe.when`
+ - :meth:`mocksafe.that`
+ - :meth:`mocksafe.spy`
+"""
+
+from mocksafe.mock import mock, mock_reset
+from mocksafe.when_then import when
+from mocksafe.that import that, spy
+
+from mocksafe.when_then import WhenStubber, MatchCallStubber, LastCallStubber
+from mocksafe.that import MockCalls
