@@ -1,4 +1,4 @@
-# MockSafe v0.1.0
+# MockSafe v0.2.0-dev
 
 A mocking library developed to enable static type checking of your mocks.
 
