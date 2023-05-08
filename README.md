@@ -1,4 +1,4 @@
-# MockSafe
+# MockSafe v0.1.0
 
 A mocking library developed to enable static type checking of your mocks.
 
@@ -11,11 +11,15 @@ It also borrows ideas from mocking libraries in staticly typed languages, such a
 the `mockito` Java library, while at the same time striving to keep the code
 reasonably ideomatic.
 
+
 ## Usage
 
 Please read the docs.
 
+
 ## Development
+
+### Testing etc.
 
 To lint, type check, format, and run tests use [tox](https://tox.wiki/en/latest/):
 
@@ -33,7 +37,19 @@ pip install tox-pyenv
 
 This should read from `.python-version`.
 
-## Build
+### Version bumps:
+
+This library uses semantic versioning.
+
+You can use bumpver to automatically update and tag a new version.
+
+```
+pip install bumpver
+
+bumpver update [--major] [--minor] [--patch] [--tag <alpha|beta|...>] [--dry]
+```
+
+### Build
 
 To build this package, use [pypa-build](https://github.com/pypa/build):
 

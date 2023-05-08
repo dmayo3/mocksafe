@@ -32,6 +32,9 @@ False, or None).
 6. **Python 3.10+**: MockSafe is free from any legacy constraints and uses
 up-to-date Python typing and features.
 
+7. **No Dependencies**: MockSafe is currently free of dependencies. If we
+decide to add any in future we'll try to keep it minimal if possible.
+
 
 MockSafe in Action
 ------------------
