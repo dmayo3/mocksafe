@@ -1,3 +1,6 @@
+[![Documentation Status](https://readthedocs.org/projects/mocksafe/badge/?version=latest)](https://mocksafe.readthedocs.io/en/latest/?badge=latest)
+
+
 # Work in Progress
 
 This library is currently under construction, but actually should be usable
