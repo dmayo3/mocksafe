@@ -7,7 +7,7 @@ Work in Progress
 
 This library is currently under construction, but should be usable already.
 
-MockSafe v0.3.2-dev
+MockSafe v0.3.3-dev
 -------------------
 
 A mocking library developed to enable static and runtime type checking of your mocks to help keep them up-to-date with your production code.

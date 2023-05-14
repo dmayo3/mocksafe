@@ -16,4 +16,4 @@ from mocksafe.when_then import WhenStubber, MatchCallStubber, LastCallStubber
 from mocksafe.that import MockCalls
 
 
-__version__ = "0.3.2-dev"
+__version__ = "0.3.3-dev"
