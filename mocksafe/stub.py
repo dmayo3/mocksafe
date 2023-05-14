@@ -1,4 +1,4 @@
-from inspect import Signature
+from inspect import Signature, isclass
 from typing import Generic, TypeVar
 from collections.abc import Callable
 from mocksafe.custom_types import MethodName, CallMatcher
@@ -6,6 +6,10 @@ from mocksafe.custom_types import MethodName, CallMatcher
 
 T = TypeVar("T")
 ResultsProvider = Callable[..., T]
+
+
+# Stub default values for these simple built-in types
+PRIMITIVES = [str, int, bool, float, dict, list, tuple, set]
 
 
 class MethodStub(Generic[T]):
@@ -24,20 +28,18 @@ class MethodStub(Generic[T]):
         # something sensible to return
 
         default_value: T | None
+        result_type: type = self._result_type
 
-        if self._result_type == type(None):
+        if result_type == type(None):
             default_value = None  # type: ignore
-        elif self._result_type == Signature.empty:
+        elif result_type == Signature.empty:
             # There are no type annotations to infer type from.
             # Fall back to None.
             default_value = None
-        else:
-            # Try the type's constructor with zero args
-            # E.g. int() -> 0, bool() -> False, str() -> ""
-            try:
-                default_value = self._result_type()
-            except Exception:
-                default_value = None
+        elif not isclass(result_type):
+            default_value = None
+        elif any(issubclass(result_type, p) for p in PRIMITIVES):
+            default_value = result_type()
 
         return default_value
 

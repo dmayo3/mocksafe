@@ -1,7 +1,7 @@
 from __future__ import annotations
 import inspect
 from itertools import count
-from typing import Generic, TypeVar, cast
+from typing import Generic, TypeVar, Any, cast
 from collections.abc import Callable
 from mocksafe.custom_types import MethodName, CallMatcher, Call
 from mocksafe.spy import MethodSpy
@@ -80,15 +80,43 @@ class SafeMock(Generic[T]):
     def __repr__(self) -> str:
         return f"SafeMock[{self._class_type.__name__}#{self._name}]"
 
-    def __getattr__(self, method_name: MethodName) -> MethodMock:
-        if method_mock := self._mocks.get(method_name):
-            return method_mock
+    def __getattr__(self, attr_name: str) -> MethodMock | Any:
+        if attr_mock := self._mocks.get(attr_name):
+            return attr_mock
 
-        original_method: Callable = getattr(self._class_type, method_name)
+        if attr_name in getattr(self._class_type, "__attrs__", []):
+            # Field attribute defined on the original class
+            raise AttributeError(f"{self}.{attr_name} attribute value not set.")
+
+        try:
+            original_method: Callable = getattr(self._class_type, attr_name)
+        except AttributeError as err:
+            raise AttributeError(
+                f"{self}.{attr_name} attribute doesn't exist on the "
+                f"original mocked type {self._class_type}."
+            ) from err
+
+        try:
+            # Try treating it as a property
+            prop = cast(property, original_method)
+            # If it is a property, check it's read-only
+            if prop.fget and not prop.fset and not prop.fdel:
+                # Actually mock the fget (property getter) method
+                # instead of trying to mock the property attribute
+                original_method = cast(MethodMock, prop.fget)
+            else:
+                raise ValueError(
+                    f"MockSafe currently only supports read-only properties, "
+                    f"so the {self}.{attr_name} property could not be mocked."
+                )
+        except AttributeError:
+            # Not actually a property
+            pass
+
         signature = inspect.signature(original_method)
-        method_mock = MethodMock(self._class_type, method_name, signature)
-        self._mocks[method_name] = method_mock
-        return method_mock
+        attr_mock = MethodMock(self._class_type, attr_name, signature)
+        self._mocks[attr_name] = attr_mock
+        return attr_mock
 
 
 class MethodMock(Generic[T]):
