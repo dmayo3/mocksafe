@@ -2,13 +2,8 @@
     :target: https://mocksafe.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-Work in Progress
-----------------
-
-This library is currently under construction, but should be usable already.
-
 MockSafe v0.3.3-alpha
--------------------
+---------------------
 
 A mocking library developed to enable static and runtime type checking of your mocks to help keep them up-to-date with your production code.
 
