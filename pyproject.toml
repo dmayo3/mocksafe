@@ -1,7 +1,34 @@
 [project]
 name = "mocksafe"
 version = "0.3.1-dev"
+
+description = { file = "README.md" }
+
 requires-python = ">= 3.10"
+readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Testing :: Mocking",
+    "Topic :: Software Development :: Testing :: Unit",
+    "Framework :: Pytest",
+    "Typing :: Typed",
+]
+keywords = ["mock", "mocking", "typed", "typing", "typesafe", "testing", "tests", "mocks", "magicmock", "unittest", "stubbing"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/dmayo3/mocksafe/"
 
 [build-system]
 build-backend = "setuptools.build_meta"
