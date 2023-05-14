@@ -54,6 +54,6 @@ push = false
 "mocksafe/__init__.py" = [
     "{version}",
 ]
-"README.md" = [
+"README.rst" = [
     "{version}",
 ]
