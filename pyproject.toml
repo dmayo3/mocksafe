@@ -5,10 +5,11 @@ version = "0.3.2-dev"
 description = "A mocking library developed to enable static and runtime type checking of your mocks to keep them in sync with production code."
 
 requires-python = ">= 3.10"
-readme = "README.md"
+readme = "README.rst"
 license = { file = "LICENSE" }
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
+    "Natural Language :: English",
     "Environment :: Console",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
@@ -17,6 +18,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Testing",
     "Topic :: Software Development :: Testing :: Mocking",
@@ -28,7 +31,8 @@ keywords = ["mock", "mocking", "typed", "typing", "typesafe", "testing", "tests"
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/dmayo3/mocksafe/"
+Documentation = "https://mocksafe.readthedocs.io"
+Source = "https://github.com/dmayo3/mocksafe"
 
 [build-system]
 build-backend = "setuptools.build_meta"
