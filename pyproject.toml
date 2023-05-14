@@ -2,7 +2,7 @@
 name = "mocksafe"
 version = "0.3.2-dev"
 
-description = { file = "README.md" }
+description = "A mocking library developed to enable static and runtime type checking of your mocks to keep them in sync with production code."
 
 requires-python = ">= 3.10"
 readme = "README.md"
