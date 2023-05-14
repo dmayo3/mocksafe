@@ -3,7 +3,7 @@
 This library is currently under construction, but actually should be usable
 already.
 
-# MockSafe v0.3.0-dev
+# MockSafe v0.3.1-dev
 
 A mocking library developed to enable static type checking of your mocks.
 
