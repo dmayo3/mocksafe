@@ -1,7 +1,7 @@
 from __future__ import annotations
 import inspect
 from itertools import count
-from typing import Generic, TypeVar, Any, cast
+from typing import Generic, TypeVar, Optional, Union, Any, cast
 from collections.abc import Callable
 from mocksafe.custom_types import MethodName, CallMatcher, Call
 from mocksafe.spy import MethodSpy
@@ -14,7 +14,7 @@ T = TypeVar("T")
 MOCK_NUMBER = count()
 
 
-def mock(class_type: type[T], name: str | None = None) -> T:
+def mock(class_type: type[T], name: Optional[str] = None) -> T:
     """
     Creates a mock of the given ``class_type``.
 
@@ -62,7 +62,7 @@ def call_equal_to(exact: Call) -> CallMatcher:
 
 
 class SafeMock(Generic[T]):
-    def __init__(self, class_type: type[T], name: str | None = None):
+    def __init__(self, class_type: type[T], name: Optional[str] = None):
         self._class_type = class_type
         self._mocks: dict[MethodName, MethodMock] = {}
         self._name = name or next(MOCK_NUMBER)
@@ -80,7 +80,7 @@ class SafeMock(Generic[T]):
     def __repr__(self) -> str:
         return f"SafeMock[{self._class_type.__name__}#{self._name}]"
 
-    def __getattr__(self, attr_name: str) -> MethodMock | Any:
+    def __getattr__(self, attr_name: str) -> Union[MethodMock, Any]:
         if attr_mock := self._mocks.get(attr_name):
             return attr_mock
 
@@ -141,10 +141,12 @@ class MethodMock(Generic[T]):
     def name(self) -> MethodName:
         return self._stub.name
 
-    def add_stub(self, matcher: CallMatcher, effects: list[T | BaseException]) -> None:
+    def add_stub(
+        self, matcher: CallMatcher, effects: list[Union[T, BaseException]]
+    ) -> None:
         self._stub.add(matcher, effects)
 
-    def stub_last_call(self, effects: list[T | BaseException]) -> None:
+    def stub_last_call(self, effects: list[Union[T, BaseException]]) -> None:
         matcher = call_equal_to(self._spy.pop_call())
         self._stub.add(matcher, effects)
 

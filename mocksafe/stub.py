@@ -1,7 +1,8 @@
 from inspect import Signature, isclass
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Optional, Union
 from collections.abc import Callable
 from mocksafe.custom_types import MethodName, CallMatcher
+from mocksafe.call_type_validator import type_match
 
 
 T = TypeVar("T")
@@ -18,7 +19,7 @@ class MethodStub(Generic[T]):
         self._stubs: list[tuple[CallMatcher, ResultsProvider]] = []
         self._result_type = result_type
 
-    def __call__(self, *args, **kwargs) -> T | None:
+    def __call__(self, *args, **kwargs) -> Optional[T]:
         call = (tuple(args), kwargs)
         for matcher, results in self._stubs:
             if matcher(call):
@@ -27,7 +28,7 @@ class MethodStub(Generic[T]):
         # No default return value has been stubbed, try to determine
         # something sensible to return
 
-        default_value: T | None
+        default_value: Optional[T]
         result_type: type = self._result_type
 
         if result_type == type(None):
@@ -53,14 +54,14 @@ class MethodStub(Generic[T]):
     def name(self) -> MethodName:
         return self._name
 
-    def add(self, matcher: CallMatcher, effects: list[T | BaseException]) -> None:
+    def add(self, matcher: CallMatcher, effects: list[Union[T, BaseException]]) -> None:
         self._validate_effects(effects)
         self.add_effect(matcher, CannedEffects(effects))
 
     def add_effect(self, matcher: CallMatcher, effect: ResultsProvider) -> None:
         self._stubs.insert(0, (matcher, effect))
 
-    def _validate_effects(self, effects: list[T | BaseException]):
+    def _validate_effects(self, effects: list[Union[T, BaseException]]):
         # Runtime check in case static type checking allows an incompatible type
         # to slip through
         if self._result_type == Signature.empty:
@@ -69,7 +70,7 @@ class MethodStub(Generic[T]):
         for e in effects:
             if isinstance(e, BaseException):
                 continue
-            if not isinstance(e, self._result_type):
+            if not type_match(e, self._result_type):
                 raise TypeError(
                     f"Cannot use stub result {e} ({type(e)}) with the mocked method {self._name}(), the expected return type is: {self._result_type}."
                 )

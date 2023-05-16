@@ -1,4 +1,5 @@
 from random import Random
+from typing import Optional
 import pytest
 from mocksafe import mock, when, that, spy
 
@@ -7,7 +8,7 @@ class MyClass:
     def foo(self, bar: str, baz: int = 123) -> int:
         return baz + len(bar)
 
-    def quux(self) -> str | None:
+    def quux(self) -> Optional[str]:
         return "something"
 
 

@@ -86,6 +86,7 @@ enable=
 
 disable=
     attribute-defined-outside-init,
+    consider-alternative-union-syntax,
     invalid-name,
     missing-docstring,
     protected-access,

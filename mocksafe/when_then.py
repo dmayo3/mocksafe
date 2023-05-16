@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Generic, TypeVar
+from typing import Generic, Union, TypeVar
 from collections.abc import Callable
 from mocksafe.custom_types import CallMatcher
 from mocksafe.mock import MethodMock, ResultsProvider
@@ -124,7 +124,7 @@ class MatchCallStubber(Generic[T]):
         """
         self._method_mock.custom_result(self._matcher, result)
 
-    def use_side_effects(self, *side_effects: T | BaseException) -> None:
+    def use_side_effects(self, *side_effects: Union[T, BaseException]) -> None:
         """
         Specify an ordered sequence of results and/or exceptions to be returned/raised.
         """
@@ -164,7 +164,7 @@ class LastCallStubber(Generic[T]):
     def then(self, result: ResultsProvider) -> None:
         self._method_mock.custom_result_for_last_call(result)
 
-    def use_side_effects(self, *side_effects: T | BaseException) -> None:
+    def use_side_effects(self, *side_effects: Union[T, BaseException]) -> None:
         if not self._method_mock.calls:
             raise ValueError(
                 f"Mocked methods do not match: when({self._method_mock.full_name}).called_with(<different_method>)"
