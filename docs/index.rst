@@ -29,9 +29,7 @@ Only the methods on the class you're mocking will be stubbed, and by
 default these stubbed methods will return predictable defaults (such as 0,
 False, or None).
 
-6. **Python 3.10+**: MockSafe is free from any legacy constraints and uses up-to-date Python typing and features.
-
-7. **No Dependencies**: MockSafe is currently free of dependencies other than pytest. If we decide to add any in future we'll try to keep it minimal if possible.
+6. **No Dependencies**: MockSafe is currently free of dependencies other than pytest. If we decide to add any in future we'll try to keep it minimal if possible.
 
 
 MockSafe in Action

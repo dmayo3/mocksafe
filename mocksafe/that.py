@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Union
 from collections.abc import Callable
 from mocksafe.custom_types import Call
 from mocksafe.mock import MethodMock
@@ -125,11 +126,11 @@ class MockCalls:
         return len(self._method_mock.calls)
 
     @property
-    def last_call(self) -> Args | Call:
+    def last_call(self) -> Union[Args, Call]:
         """Returns details of the last call made to the mocked method."""
         return self.nth_call(-1)
 
-    def nth_call(self, n: int) -> Args | Call:
+    def nth_call(self, n: int) -> Union[Args, Call]:
         """Returns details of the Nth call made to the mocked method."""
         call = self._method_mock.nth_call(n)
 

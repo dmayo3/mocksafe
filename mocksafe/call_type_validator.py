@@ -1,6 +1,6 @@
 from inspect import Parameter
-from types import GenericAlias, UnionType, MappingProxyType
-from typing import cast
+from types import GenericAlias, MappingProxyType
+from typing import Union, cast
 from mocksafe.custom_types import MethodName
 
 
@@ -66,7 +66,7 @@ class CallTypeValidator:
         return name in self._kwargs or param.default != Parameter.empty
 
     def _validate_type(self, param, arg):
-        if param.annotation != Parameter.empty and not _type_match(
+        if param.annotation != Parameter.empty and not type_match(
             arg, param.annotation
         ):
             raise TypeError(
@@ -86,20 +86,42 @@ class CallTypeValidator:
             )
 
 
-def _type_match(arg, expected_type: type) -> bool:
-    try:
-        # Handle generic type by checking just the base type
-        # E.g. for dict[str, str] just check isinstance(arg, type(dict))
-        origin_type = cast(GenericAlias, expected_type).__origin__
-        return isinstance(arg, origin_type)
-    except AttributeError:
-        pass
+def type_match(arg, expected_type: type) -> bool:
+    if _is_union(expected_type):
+        generic_type: GenericAlias = cast(GenericAlias, expected_type)
+
+        union: tuple = generic_type.__args__
+
+        # Recursively match any type in the union
+        return any(type_match(arg, t) for t in union)
 
     try:
-        # Handle union type: recursively match any type in the union
-        union: tuple = cast(UnionType, expected_type).__args__
-        return any(_type_match(arg, t) for t in union)
+        # Handle other generic types by checking just the base type
+        # E.g. for dict[str, str] just check isinstance(arg, type(dict))
+        generic_type = cast(GenericAlias, expected_type)
+        return isinstance(arg, generic_type.__origin__)
     except AttributeError:
         pass
 
     return isinstance(arg, expected_type)
+
+
+def _is_union(t: type) -> bool:
+    # 1. Check for types.UnionType
+
+    # This type is not supported in Python 3.9
+    # So we check for it at runtime in this hacky way
+    if t.__class__.__name__ == "UnionType":
+        return True
+
+    # 2. Check for typing.Union / typing.Optional
+    # Both are equivalent under the covers
+    try:
+        generic_type: GenericAlias = cast(GenericAlias, t)
+
+        # typing.Union cannot be used with isinstance()
+        return generic_type.__origin__ == Union
+    except AttributeError:
+        pass
+
+    return False
