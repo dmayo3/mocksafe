@@ -34,5 +34,7 @@ jobs:
         run: |
           pip install "tox>=4.5,<4.6"
       - name: Run tox
+        env:
+          TERM: dumb
         run: |
-          tox -p
+          tox run-parallel
