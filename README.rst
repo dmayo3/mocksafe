@@ -1,3 +1,6 @@
+.. image:: https://github.com/dmayo3/mocksafe/actions/workflows/mocksafe.yml/badge.svg
+    :target: https://github.com/dmayo3/mocksafe/actions/workflows/mocksafe.yml?query=branch%3Amain
+    :alt: Github Actions Status
 .. image:: https://readthedocs.org/projects/mocksafe/badge/?version=latest
     :target: https://mocksafe.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
