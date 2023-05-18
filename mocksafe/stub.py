@@ -1,3 +1,4 @@
+from __future__ import annotations
 from inspect import Signature, isclass
 from typing import Generic, TypeVar, Optional, Union
 from collections.abc import Callable
@@ -14,12 +15,12 @@ PRIMITIVES = [str, int, bool, float, dict, list, tuple, set]
 
 
 class MethodStub(Generic[T]):
-    def __init__(self, name: MethodName, result_type: type):
+    def __init__(self: MethodStub, name: MethodName, result_type: type):
         self._name = name
         self._stubs: list[tuple[CallMatcher, ResultsProvider]] = []
         self._result_type = result_type
 
-    def __call__(self, *args, **kwargs) -> Optional[T]:
+    def __call__(self: MethodStub, *args, **kwargs) -> Optional[T]:
         call = (tuple(args), kwargs)
         for matcher, results in self._stubs:
             if matcher(call):
@@ -31,37 +32,41 @@ class MethodStub(Generic[T]):
         default_value: Optional[T]
         result_type: type = self._result_type
 
-        if result_type == type(None):
-            default_value = None  # type: ignore
-        elif result_type == Signature.empty:
-            # There are no type annotations to infer type from.
-            # Fall back to None.
-            default_value = None
-        elif not isclass(result_type):
-            default_value = None
-        elif any(issubclass(result_type, p) for p in PRIMITIVES):
+        primitive_result_type = isclass(result_type) and any(
+            issubclass(result_type, p) for p in PRIMITIVES
+        )
+
+        if primitive_result_type:
             default_value = result_type()
+        else:
+            default_value = None
 
         return default_value
 
-    def __repr__(self) -> str:
+    def __repr__(self: MethodStub) -> str:
         reps = []
         for matcher, results in self._stubs:
             reps.append(f"{matcher} -> {results}")
         return "; ".join(reps)
 
     @property
-    def name(self) -> MethodName:
+    def name(self: MethodStub) -> MethodName:
         return self._name
 
-    def add(self, matcher: CallMatcher, effects: list[Union[T, BaseException]]) -> None:
+    def add(
+        self: MethodStub, matcher: CallMatcher, effects: list[Union[T, BaseException]]
+    ) -> None:
         self._validate_effects(effects)
         self.add_effect(matcher, CannedEffects(effects))
 
-    def add_effect(self, matcher: CallMatcher, effect: ResultsProvider) -> None:
+    def add_effect(
+        self: MethodStub, matcher: CallMatcher, effect: ResultsProvider
+    ) -> None:
         self._stubs.insert(0, (matcher, effect))
 
-    def _validate_effects(self, effects: list[Union[T, BaseException]]):
+    def _validate_effects(
+        self: MethodStub, effects: list[Union[T, BaseException]]
+    ) -> None:
         # Runtime check in case static type checking allows an incompatible type
         # to slip through
         if self._result_type == Signature.empty:
@@ -72,15 +77,15 @@ class MethodStub(Generic[T]):
                 continue
             if not type_match(e, self._result_type):
                 raise TypeError(
-                    f"Cannot use stub result {e} ({type(e)}) with the mocked method {self._name}(), the expected return type is: {self._result_type}."
+                    f"Cannot use stub result {e} ({type(e)}) with the mocked method {self._name}(), the expected return type is: {self._result_type}.",
                 )
 
 
 class CannedEffects(Generic[T]):
-    def __init__(self, effects: list[T]):
+    def __init__(self: CannedEffects, effects: list[T]):
         self._effects = effects
 
-    def __call__(self, *args, **kwargs) -> T:
+    def __call__(self: CannedEffects, *args, **kwargs) -> T:
         if len(self._effects) == 1:
             effect = self._effects[0]
         else:
@@ -90,5 +95,5 @@ class CannedEffects(Generic[T]):
             raise effect
         return effect
 
-    def __repr__(self) -> str:
+    def __repr__(self: CannedEffects) -> str:
         return str(self._effects[0])

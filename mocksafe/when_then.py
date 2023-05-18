@@ -53,10 +53,10 @@ class WhenStubber(Generic[T]):
     See: :class:`mocksafe.MatchCallStubber`
     """
 
-    def __init__(self, method_mock: MethodMock[T]):
+    def __init__(self: WhenStubber, method_mock: MethodMock[T]):
         self._method_mock = method_mock
 
-    def any_call(self) -> MatchCallStubber[T]:
+    def any_call(self: WhenStubber) -> MatchCallStubber[T]:
         """
         Matches any calls made to the mocked method.
 
@@ -64,7 +64,7 @@ class WhenStubber(Generic[T]):
         """
         return MatchCallStubber(self._method_mock, matcher=ANY_CALL)
 
-    def called_with(self, _: T) -> LastCallStubber[T]:
+    def called_with(self: WhenStubber, _: T) -> LastCallStubber[T]:
         """
         Matches specific calls made to the mocked method.
 
@@ -72,7 +72,9 @@ class WhenStubber(Generic[T]):
         """
         return LastCallStubber(self._method_mock)
 
-    def call_matching(self, call_lambda: Callable[..., bool]) -> MatchCallStubber[T]:
+    def call_matching(
+        self: WhenStubber, call_lambda: Callable[..., bool]
+    ) -> MatchCallStubber[T]:
         """
         Use a lambda to determine whether to match a call.
 
@@ -102,29 +104,33 @@ class MatchCallStubber(Generic[T]):
         >>> when(mock_random.randint).any_call().use_side_effects(1, 2, 3, ValueError("..."), 4)
     """
 
-    def __init__(self, method_mock: MethodMock[T], matcher: CallMatcher):
+    def __init__(
+        self: MatchCallStubber, method_mock: MethodMock[T], matcher: CallMatcher
+    ):
         self._method_mock = method_mock
         self._matcher = matcher
 
-    def then_return(self, result: T, *consecutive_results: T) -> None:
+    def then_return(self: MatchCallStubber, result: T, *consecutive_results: T) -> None:
         """
         Set one or more results to be returned by the method stub.
         """
         self.use_side_effects(result, *consecutive_results)
 
-    def then_raise(self, error: BaseException) -> None:
+    def then_raise(self: MatchCallStubber, error: BaseException) -> None:
         """
         Raise an exception.
         """
         self.use_side_effects(error)
 
-    def then(self, result: ResultsProvider) -> None:
+    def then(self: MatchCallStubber, result: ResultsProvider) -> None:
         """
         Use a custom lambda to produce stubbed results.
         """
         self._method_mock.custom_result(self._matcher, result)
 
-    def use_side_effects(self, *side_effects: Union[T, BaseException]) -> None:
+    def use_side_effects(
+        self: MatchCallStubber, *side_effects: Union[T, BaseException]
+    ) -> None:
         """
         Specify an ordered sequence of results and/or exceptions to be returned/raised.
         """
@@ -152,22 +158,24 @@ class LastCallStubber(Generic[T]):
         >>> when(mock_random.randint).called_with(mock_random.randint(9, 10)).use_side_effects(1, 2, 3, ValueError("..."), 4)
     """
 
-    def __init__(self, method_mock: MethodMock[T]):
+    def __init__(self: LastCallStubber, method_mock: MethodMock[T]):
         self._method_mock = method_mock
 
-    def then_return(self, result: T, *consecutive_results: T) -> None:
+    def then_return(self: LastCallStubber, result: T, *consecutive_results: T) -> None:
         self.use_side_effects(result, *consecutive_results)
 
-    def then_raise(self, error: BaseException) -> None:
+    def then_raise(self: LastCallStubber, error: BaseException) -> None:
         self.use_side_effects(error)
 
-    def then(self, result: ResultsProvider) -> None:
+    def then(self: LastCallStubber, result: ResultsProvider) -> None:
         self._method_mock.custom_result_for_last_call(result)
 
-    def use_side_effects(self, *side_effects: Union[T, BaseException]) -> None:
+    def use_side_effects(
+        self: LastCallStubber, *side_effects: Union[T, BaseException]
+    ) -> None:
         if not self._method_mock.calls:
             raise ValueError(
-                f"Mocked methods do not match: when({self._method_mock.full_name}).called_with(<different_method>)"
+                f"Mocked methods do not match: when({self._method_mock.full_name}).called_with(<different_method>)",
             )
 
         self._method_mock.stub_last_call(list(side_effects))

@@ -192,7 +192,7 @@ def test_stub_call_with_raises_error():
     mock_object: MyClass = mock(MyClass)
 
     when(mock_object.foo).called_with(mock_object.foo("bad")).then_raise(
-        ValueError("Invalid argument")
+        ValueError("Invalid argument"),
     )
 
     mock_object.foo("good")
