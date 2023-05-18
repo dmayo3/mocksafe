@@ -163,8 +163,10 @@ Example 6: asserting multiple calls
 
 .. doctest::
 
+    >>> from typing import Optional
+
     >>> class PetShop:
-    ...     def sell_pet(self, pet: str, price: int, status: dict[str, ...] | None = None) -> None:
+    ...     def sell_pet(self, pet: str, price: int, status: Optional[dict[str, ...]] = None) -> None:
     ...         ...
 
     >>> parrot_shop: PetShop = mock(PetShop)
