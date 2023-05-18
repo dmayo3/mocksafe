@@ -51,7 +51,7 @@ def mock(class_type: type[T], name: Optional[str] = None) -> T:
     return cast(T, SafeMock(class_type, name))
 
 
-def mock_reset(mock_object) -> None:
+def mock_reset(mock_object: Any) -> None:
     if not isinstance(mock_object, SafeMock):
         raise ValueError(f"Not a SafeMocked object: {mock_object}")
     mock_object.reset()
@@ -62,25 +62,25 @@ def call_equal_to(exact: Call) -> CallMatcher:
 
 
 class SafeMock(Generic[T]):
-    def __init__(self, class_type: type[T], name: Optional[str] = None):
+    def __init__(self: SafeMock, class_type: type[T], name: Optional[str] = None):
         self._class_type = class_type
         self._mocks: dict[MethodName, MethodMock] = {}
         self._name = name or next(MOCK_NUMBER)
 
     @property
-    def mocked_methods(self) -> dict[MethodName, MethodMock]:
+    def mocked_methods(self: SafeMock) -> dict[MethodName, MethodMock]:
         return self._mocks.copy()
 
     # This is a bit of a hack to fool isinstance checks.
     # Is there a better way?
     @property  # type: ignore
-    def __class__(self):
+    def __class__(self: SafeMock):
         return self._class_type
 
-    def __repr__(self) -> str:
+    def __repr__(self: SafeMock) -> str:
         return f"SafeMock[{self._class_type.__name__}#{self._name}]"
 
-    def __getattr__(self, attr_name: str) -> Union[MethodMock, Any]:
+    def __getattr__(self: SafeMock, attr_name: str) -> Union[MethodMock, Any]:
         if attr_mock := self._mocks.get(attr_name):
             return attr_mock
 
@@ -93,7 +93,7 @@ class SafeMock(Generic[T]):
         except AttributeError as err:
             raise AttributeError(
                 f"{self}.{attr_name} attribute doesn't exist on the "
-                f"original mocked type {self._class_type}."
+                f"original mocked type {self._class_type}.",
             ) from err
 
         try:
@@ -107,7 +107,7 @@ class SafeMock(Generic[T]):
             else:
                 raise ValueError(
                     f"MockSafe currently only supports read-only properties, "
-                    f"so the {self}.{attr_name} property could not be mocked."
+                    f"so the {self}.{attr_name} property could not be mocked.",
                 )
         except AttributeError:
             # Not actually a property
@@ -121,45 +121,54 @@ class SafeMock(Generic[T]):
 
 class MethodMock(Generic[T]):
     def __init__(
-        self, class_type: type[T], name: MethodName, signature: inspect.Signature
+        self: MethodMock,
+        class_type: type[T],
+        name: MethodName,
+        signature: inspect.Signature,
     ):
         self._class_type = class_type
         self._stub: MethodStub = MethodStub(name, signature.return_annotation)
         self._spy: MethodSpy = MethodSpy(name, self._stub, signature)
 
-    def __call__(self, *args, **kwargs) -> T:
+    def __call__(self: MethodMock, *args, **kwargs) -> T:
         return self._spy(*args, **kwargs)
 
-    def __repr__(self) -> str:
+    def __repr__(self: MethodMock) -> str:
         return f"MethodMock[{self._stub}]"
 
     @property
-    def full_name(self) -> str:
+    def full_name(self: MethodMock) -> str:
         return f"{self._class_type.__name__}.{self.name}"
 
     @property
-    def name(self) -> MethodName:
+    def name(self: MethodMock) -> MethodName:
         return self._stub.name
 
     def add_stub(
-        self, matcher: CallMatcher, effects: list[Union[T, BaseException]]
+        self: MethodMock,
+        matcher: CallMatcher,
+        effects: list[Union[T, BaseException]],
     ) -> None:
         self._stub.add(matcher, effects)
 
-    def stub_last_call(self, effects: list[Union[T, BaseException]]) -> None:
+    def stub_last_call(
+        self: MethodMock, effects: list[Union[T, BaseException]]
+    ) -> None:
         matcher = call_equal_to(self._spy.pop_call())
         self._stub.add(matcher, effects)
 
-    def custom_result_for_last_call(self, custom: ResultsProvider) -> None:
+    def custom_result_for_last_call(self: MethodMock, custom: ResultsProvider) -> None:
         matcher = call_equal_to(self._spy.pop_call())
         self.custom_result(matcher, custom)
 
-    def custom_result(self, matcher: CallMatcher, custom: ResultsProvider) -> None:
+    def custom_result(
+        self: MethodMock, matcher: CallMatcher, custom: ResultsProvider
+    ) -> None:
         self._stub.add_effect(matcher, custom)
 
     @property
-    def calls(self) -> list[Call]:
+    def calls(self: MethodMock) -> list[Call]:
         return self._spy._calls
 
-    def nth_call(self, n: int) -> Call:
+    def nth_call(self: MethodMock, n: int) -> Call:
         return self._spy.nth_call(n)

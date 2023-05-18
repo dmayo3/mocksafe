@@ -104,33 +104,33 @@ class MockCalls:
         >>> assert that(mock_random.randint).nth_call(0) == ((), {"a":1, "b":10})
     """
 
-    def __init__(self, method_mock: MethodMock):
+    def __init__(self: MockCalls, method_mock: MethodMock):
         self._method_mock = method_mock
 
-    def __repr__(self) -> str:
+    def __repr__(self: MockCalls) -> str:
         return f"MockCalls[{self._method_mock.name}();num_calls={self.num_calls}]"
 
     @property
-    def was_called(self) -> bool:
+    def was_called(self: MockCalls) -> bool:
         """Return whether the mocked method was called at least once."""
         return self.num_calls > 0
 
     @property
-    def was_not_called(self) -> bool:
+    def was_not_called(self: MockCalls) -> bool:
         """Return whether the mocked method was not called."""
         return not self.was_called
 
     @property
-    def num_calls(self) -> int:
+    def num_calls(self: MockCalls) -> int:
         """Returns the number of calls made to the mocked method."""
         return len(self._method_mock.calls)
 
     @property
-    def last_call(self) -> Union[Args, Call]:
+    def last_call(self: MockCalls) -> Union[Args, Call]:
         """Returns details of the last call made to the mocked method."""
         return self.nth_call(-1)
 
-    def nth_call(self, n: int) -> Union[Args, Call]:
+    def nth_call(self: MockCalls, n: int) -> Union[Args, Call]:
         """Returns details of the Nth call made to the mocked method."""
         call = self._method_mock.nth_call(n)
 
