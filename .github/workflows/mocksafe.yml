@@ -32,7 +32,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install tox
         run: |
-          pip install tox ">=4.5,<4.6"
+          pip install "tox>=4.5,<4.6"
       - name: Run tox
         run: |
           tox -p
