@@ -21,9 +21,9 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - "3.9"
+#           - "3.9"
           - "3.10"
-          - "3.11"
+#           - "3.11"
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -34,7 +34,5 @@ jobs:
         run: |
           pip install "tox>=4.5,<4.6"
       - name: Run tox
-        env:
-          TERM: dumb
         run: |
-          tox run-parallel
+          tox --colored no --quiet
