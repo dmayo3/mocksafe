@@ -1,16 +1,17 @@
-.. image:: https://badge.fury.io/py/mocksafe.svg
-    :target: https://badge.fury.io/py/mocksafe
-    :alt: PyPI Package
 .. image:: https://github.com/dmayo3/mocksafe/actions/workflows/mocksafe.yml/badge.svg
     :target: https://github.com/dmayo3/mocksafe/actions/workflows/mocksafe.yml?query=branch%3Amain
     :alt: Github Actions Status
+.. image:: https://codecov.io/gh/dmayo3/mocksafe/branch/main/graph/badge.svg?token=S3JI6OOTGF 
+    :target: https://codecov.io/gh/dmayo3/mocksafe
 .. image:: https://readthedocs.org/projects/mocksafe/badge/?version=latest
     :target: https://mocksafe.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
-
-.. image:: https://img.shields.io/badge/Python-3.9-3776AB.svg?style=flat&logo=python&logoColor=white
-    :target: https://www.python.org
-    :alt: Python 3.9+
+.. image:: https://badge.fury.io/py/mocksafe.svg
+    :target: https://badge.fury.io/py/mocksafe
+    :alt: PyPI Package
+.. image:: https://img.shields.io/pypi/pyversions/mocksafe.svg
+    :target: https://pypi.org/project/mocksafe
+    :alt: Supported versions
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
     :alt: Code style: black
