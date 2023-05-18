@@ -47,3 +47,4 @@ Links
 :License: `MIT <https://github.com/dmayo3/mocksafe/blob/main/LICENSE>`_
 :Source:  `GitHub <https://github.com/dmayo3/mocksafe>`_
 :Issues:  `GitHub Issues <https://github.com/dmayo3/mocksafe/issues>`_
+:Discussion:  `Questions & Feedback <https://github.com/dmayo3/mocksafe/discussions>`_
