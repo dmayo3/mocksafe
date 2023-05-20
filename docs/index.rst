@@ -5,8 +5,8 @@ This is a new Python mocking library that offers greater type safety,
 to help keep your mocks in sync with your production code.
 
 
-Why Choose MockSafe?
---------------------
+Why Use MockSafe?
+-----------------
 
 1. **Type Safety:** it's designed to help you keep your mocks in sync
 with your production code by ensuring type safety for both static type
@@ -32,35 +32,25 @@ False, or None).
 6. **No Dependencies**: MockSafe is currently free of dependencies other than pytest. If we decide to add any in future we'll try to keep it minimal if possible.
 
 
-MockSafe in Action
-------------------
+Installation
+------------
 
-Let's summon a simple example to see MockSafe in action:
+::
 
-
-.. doctest::
-
-   >>> from mocksafe import mock, when, that
-
-   >>> class GrailSeeker:
-   ...     def find_holy_grail(self) -> str:
-   ...         # TODO: write production code here
-   ...         raise NotImplementedError()
-
-   >>> arthur = mock(GrailSeeker, name="King Arthur")
-
-   >>> when(arthur.find_holy_grail).any_call().then_return("Ni!")
-
-   >>> arthur.find_holy_grail()
-   'Ni!'
-
-   >>> assert that(arthur.find_holy_grail).was_called
-   >>> assert that(arthur.find_holy_grail).num_calls == 1
-   >>> assert that(arthur.find_holy_grail).last_call == ()
+   pip install mocksafe
 
 
-This is just a taste, there are plenty more Monty Python inspired
-examples in the Usage section.
+Getting Started
+---------------
+
+For an example of the basics see the :doc:`usage` page.
+
+
+Type Safety
+-----------
+
+To find out more about the main reason this library was
+created, you can see the :doc:`typesafety` page.
 
 
 Contents
@@ -69,4 +59,8 @@ Contents
 .. toctree::
 
    usage
+   mocking
+   stubbing
+   verification
+   typesafety
    api
