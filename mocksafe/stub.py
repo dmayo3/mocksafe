@@ -77,7 +77,11 @@ class MethodStub(Generic[T]):
                 continue
             if not type_match(e, self._result_type):
                 raise TypeError(
-                    f"Cannot use stub result {e} ({type(e)}) with the mocked method {self._name}(), the expected return type is: {self._result_type}.",
+                    (
+                        f"Cannot use stub result {e} ({type(e)}) with the mocked method"
+                        f" {self._name}(), the expected return type is:"
+                        f" {self._result_type}."
+                    ),
                 )
 
 
