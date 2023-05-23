@@ -285,14 +285,11 @@ Stub Properties
     ...         return "Spam"
 
     >>> menu = mock(Menu)
-
-    >>> when(menu.daily_special).any_call().then_return(
-    ...     "Sausage, eggs, spam, bacon, and spam",
-    ... )
-
-    # ❌ Fail
     >>> menu.daily_special
-    MethodMock[* -> Sausage, eggs, spam, bacon, and spam]
+    Traceback (most recent call last):
+    ...
+    ValueError: MockSafe doesn't currently support properties, so SafeMock[Menu#...].daily_special could not be mocked.
+
 
 
 Raise Error

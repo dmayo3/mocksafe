@@ -25,7 +25,9 @@ def when(mock_method: Callable[..., T]) -> WhenStubber[T]:
         >>> when(mock_random.random).any_call().then_return(0.31)
     """
     if not isinstance(mock_method, MethodMock):
-        raise ValueError("Not a SafeMocked method: mock_method")
+        raise ValueError(
+            f"Not a SafeMocked method: {mock_method} ({type(mock_method)})"
+        )
     return WhenStubber(mock_method)
 
 
@@ -39,14 +41,24 @@ class WhenStubber(Generic[T]):
     See: :class:`mocksafe.MatchCallStubber`
 
     :Example:
-        >>> when(mock_random.randint).called_with(mock_random.randint(1, 10)).then_return(7)
+        >>> when(
+        ...     mock_random.randint
+        ... ).called_with(
+        ...     mock_random.randint(1, 10)
+        ... ).then_return(7)
+
         >>> mock_random.randint(1, 10)
         7
 
     See: :class:`mocksafe.LastCallStubber`
 
     :Example:
-        >>> when(mock_random.randint).call_matching(lambda a, b: a <= 3 and b > 3).then_return(3)
+        >>> when(
+        ...     mock_random.randint
+        ... ).call_matching(
+        ...     lambda a, b: a <= 3 and b > 3
+        ... ).then_return(3)
+
         >>> mock_random.randint(2, 6)
         3
 
@@ -101,7 +113,12 @@ class MatchCallStubber(Generic[T]):
         >>> when(mock_random.randint).any_call().then(lambda a, b: int((b - a) / 2))
 
     :Example:
-        >>> when(mock_random.randint).any_call().use_side_effects(1, 2, 3, ValueError("..."), 4)
+        >>> when(
+        ...     mock_random.randint
+        ... ).any_call().use_side_effects(
+        ...     1, 2, 3, ValueError("..."), 4
+        ... )
+
     """
 
     def __init__(
@@ -143,19 +160,43 @@ class LastCallStubber(Generic[T]):
     condition matches.
 
     :Example:
-        >>> when(mock_random.randint).called_with(mock_random.randint(1, 2)).then_return(0.31)
+        >>> when(
+        ...     mock_random.randint
+        ... ).called_with(
+        ...     mock_random.randint(1, 2)
+        ... ).then_return(0.31)
 
     :Example:
-        >>> when(mock_random.randint).called_with(mock_random.randint(3, 4)).then_return(0.1, 0.3, 0.2)
+        >>> when(
+        ...     mock_random.randint
+        ... ).called_with(
+        ...     mock_random.randint(3, 4)
+        ... ).then_return(0.1, 0.3, 0.2)
 
     :Example:
-        >>> when(mock_random.randint).called_with(mock_random.randint(5, 6)).then_raise(ValueError("..."))
+        >>> when(
+        ...     mock_random.randint
+        ... ).called_with(
+        ...     mock_random.randint(5, 6)
+        ... ).then_raise(ValueError("..."))
 
     :Example:
-        >>> when(mock_random.randint).called_with(mock_random.randint(7, 8)).then(lambda a, b: int((b - a) / 2))
+        >>> when(
+        ...     mock_random.randint
+        ... ).called_with(
+        ...     mock_random.randint(7, 8)
+        ... ).then(
+        ...     lambda a, b: int((b - a) / 2)
+        ... )
 
     :Example:
-        >>> when(mock_random.randint).called_with(mock_random.randint(9, 10)).use_side_effects(1, 2, 3, ValueError("..."), 4)
+        >>> when(
+        ...     mock_random.randint
+        ... ).called_with(
+        ...     mock_random.randint(9, 10)
+        ... ).use_side_effects(
+        ...     1, 2, 3, ValueError("..."), 4
+        ... )
     """
 
     def __init__(self: LastCallStubber, method_mock: MethodMock[T]):
@@ -175,7 +216,11 @@ class LastCallStubber(Generic[T]):
     ) -> None:
         if not self._method_mock.calls:
             raise ValueError(
-                f"Mocked methods do not match: when({self._method_mock.full_name}).called_with(<different_method>)",
+                (
+                    "Mocked methods do not match: "
+                    f"when({self._method_mock.full_name})"
+                    ".called_with(<different_method>)"
+                ),
             )
 
         self._method_mock.stub_last_call(list(side_effects))

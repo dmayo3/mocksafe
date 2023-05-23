@@ -1,7 +1,10 @@
 from __future__ import annotations
+import builtins
+import contextlib
 from inspect import Parameter
-from collections.abc import Sequence
-from types import GenericAlias, MappingProxyType
+from collections.abc import Sequence, Mapping
+from urllib.parse import urlencode
+from types import GenericAlias
 from typing import Union, Any, cast
 from mocksafe.custom_types import MethodName
 
@@ -10,7 +13,7 @@ class CallTypeValidator:
     def __init__(
         self: CallTypeValidator,
         method_name: MethodName,
-        params: MappingProxyType[str, Parameter],
+        params: Mapping[str, Parameter],
         args: Sequence,
         kwargs: dict,
     ):
@@ -30,9 +33,15 @@ class CallTypeValidator:
             param = self._params[name]
 
             if param.kind == Parameter.VAR_POSITIONAL:  # *args
+                for arg in self._args:
+                    self._validate_type(param, arg)
+
                 # Consume any remaining args to be matched
                 self._args = []
             elif param.kind == Parameter.VAR_KEYWORD:  # **kwargs
+                for arg in self._kwargs.values():
+                    self._validate_type(param, arg)
+
                 # Consume any remaining kwargs to be matched
                 self._kwargs = {}
             elif self._param_match_arg(param):
@@ -43,7 +52,10 @@ class CallTypeValidator:
                 self._validate_type(param, arg)
             else:
                 raise TypeError(
-                    f"Call to mocked method {self._method_name}() missing a required argument: {param}.",
+                    (
+                        f"Call to mocked method {self._method_name}() missing a"
+                        f" required argument: {param}."
+                    ),
                 )
 
         self._check_extra_positional_args()
@@ -75,23 +87,35 @@ class CallTypeValidator:
             param.annotation,
         ):
             raise TypeError(
-                f"Invalid type passed to mocked method {self._method_name}() for parameter: '{param}'. Actual argument passed was: {arg} ({type(arg)}).",
+                (
+                    f"Invalid type passed to mocked method {self._method_name}() for"
+                    f" parameter: '{param}'. Actual argument passed was:"
+                    f" {arg} ({type(arg)})."
+                ),
             )
 
     def _check_extra_positional_args(self: CallTypeValidator) -> None:
         if self._args:
             raise TypeError(
-                f"Mocked method {self._method_name}() was passed too many positional argument(s): {self._args}.",
+                (
+                    f"Mocked method {self._method_name}() was passed too many"
+                    f" positional argument(s): {self._args}."
+                ),
             )
 
     def _check_extra_keyword_args(self: CallTypeValidator) -> None:
         if self._kwargs:
             raise TypeError(
-                f"Mocked method {self._method_name}() was passed unexpected keyword argument(s): {self._kwargs}.",
+                (
+                    f"Mocked method {self._method_name}() was passed unexpected keyword"
+                    f" argument(s): {self._kwargs}."
+                ),
             )
 
 
-def type_match(arg: Any, expected_type: type) -> bool:
+def type_match(arg: Any, annotation: Any) -> bool:
+    expected_type: Any = _resolve_type(annotation)
+
     if _is_union(expected_type):
         generic_type: GenericAlias = cast(GenericAlias, expected_type)
 
@@ -108,7 +132,44 @@ def type_match(arg: Any, expected_type: type) -> bool:
     except AttributeError:
         pass
 
-    return isinstance(arg, expected_type)
+    try:
+        return isinstance(arg, expected_type)
+    except TypeError as err:
+        gh_issue_params = {
+            "title": "Type Match Error",
+            "labels": "bug",
+            "body": f"Arg: '{arg}' ({type(arg)}); Expected: {expected_type}",
+        }
+        gh_raise_issue_url = _gh_raise_issue_url(gh_issue_params)
+
+        raise NotImplementedError(
+            f"Could not validate that argument '{arg}' ({type(arg)}) is compatible "
+            f"with expected type: {expected_type}.\n"
+            f"Please raise an issue for this: {gh_raise_issue_url}\n"
+            "In the meantime please work around the problem."
+        ) from err
+
+
+def _resolve_type(annotation: Any) -> Any:
+    if not isinstance(annotation, str):
+        return annotation
+
+    # It's a string literal type that we need to resolve
+    # E.g. def g(x: "int") needs to resolve to int
+    with contextlib.suppress(AttributeError):
+        return getattr(builtins, annotation)
+
+    gh_issue_params = {
+        "title": "Failed to resolve literal annotation",
+        "labels": "bug",
+        "body": f"Annotation: '{annotation}'",
+    }
+    gh_raise_issue_url = _gh_raise_issue_url(gh_issue_params)
+    raise NotImplementedError(
+        f"Failed to resolve literal type annotation '{annotation}'.\n"
+        f"Please raise an issue for this: {gh_raise_issue_url}\n"
+        "In the meantime please work around the problem."
+    )
 
 
 def _is_union(t: type) -> bool:
@@ -130,3 +191,8 @@ def _is_union(t: type) -> bool:
         pass
 
     return False
+
+
+def _gh_raise_issue_url(gh_issue_params: dict[str, str]) -> str:
+    gh_repo = "https://github.com/dmayo3/mocksafe"
+    return f"{gh_repo}/issues/new?{urlencode(gh_issue_params)}"

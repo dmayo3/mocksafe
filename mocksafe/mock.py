@@ -2,7 +2,6 @@ from __future__ import annotations
 import inspect
 from itertools import count
 from typing import Generic, TypeVar, Optional, Union, Any, cast
-from collections.abc import Callable
 from mocksafe.custom_types import MethodName, CallMatcher, Call
 from mocksafe.spy import MethodSpy
 from mocksafe.stub import MethodStub, ResultsProvider
@@ -71,6 +70,10 @@ class SafeMock(Generic[T]):
     def mocked_methods(self: SafeMock) -> dict[MethodName, MethodMock]:
         return self._mocks.copy()
 
+    def reset(self: SafeMock) -> None:
+        for mocked_method in self._mocks.values():
+            mocked_method.reset()
+
     # This is a bit of a hack to fool isinstance checks.
     # Is there a better way?
     @property  # type: ignore
@@ -80,43 +83,37 @@ class SafeMock(Generic[T]):
     def __repr__(self: SafeMock) -> str:
         return f"SafeMock[{self._class_type.__name__}#{self._name}]"
 
-    def __getattr__(self: SafeMock, attr_name: str) -> Union[MethodMock, Any]:
-        if attr_mock := self._mocks.get(attr_name):
-            return attr_mock
-
+    def __getattr__(self: SafeMock, attr_name: str) -> MethodMock:
         if attr_name in getattr(self._class_type, "__attrs__", []):
             # Field attribute defined on the original class
             raise AttributeError(f"{self}.{attr_name} attribute value not set.")
 
+        original_attr = self.get_original_attr(attr_name)
+
+        if isinstance(original_attr, property):
+            raise ValueError(
+                (
+                    "MockSafe doesn't currently support properties, "
+                    f"so {self}.{attr_name} could not be mocked."
+                ),
+            )
+
+        if attr_name not in self._mocks:
+            signature = inspect.signature(original_attr)
+            self._mocks[attr_name] = MethodMock(self._class_type, attr_name, signature)
+
+        return self._mocks[attr_name]
+
+    def get_original_attr(self: SafeMock, attr_name: str) -> Any:
         try:
-            original_method: Callable = getattr(self._class_type, attr_name)
+            return getattr(self._class_type, attr_name)
         except AttributeError as err:
             raise AttributeError(
-                f"{self}.{attr_name} attribute doesn't exist on the "
-                f"original mocked type {self._class_type}.",
+                (
+                    f"{self}.{attr_name} attribute doesn't exist on the "
+                    f"original mocked type {self._class_type}."
+                ),
             ) from err
-
-        try:
-            # Try treating it as a property
-            prop = cast(property, original_method)
-            # If it is a property, check it's read-only
-            if prop.fget and not prop.fset and not prop.fdel:
-                # Actually mock the fget (property getter) method
-                # instead of trying to mock the property attribute
-                original_method = cast(MethodMock, prop.fget)
-            else:
-                raise ValueError(
-                    f"MockSafe currently only supports read-only properties, "
-                    f"so the {self}.{attr_name} property could not be mocked.",
-                )
-        except AttributeError:
-            # Not actually a property
-            pass
-
-        signature = inspect.signature(original_method)
-        attr_mock = MethodMock(self._class_type, attr_name, signature)
-        self._mocks[attr_name] = attr_mock
-        return attr_mock
 
 
 class MethodMock(Generic[T]):
@@ -126,9 +123,17 @@ class MethodMock(Generic[T]):
         name: MethodName,
         signature: inspect.Signature,
     ):
+        self._stub: MethodStub
+        self._spy: MethodSpy
+
         self._class_type = class_type
-        self._stub: MethodStub = MethodStub(name, signature.return_annotation)
-        self._spy: MethodSpy = MethodSpy(name, self._stub, signature)
+        self._name = name
+        self._signature = signature
+        self.reset()
+
+    def reset(self: MethodMock) -> None:
+        self._stub = MethodStub(self._name, self._signature.return_annotation)
+        self._spy = MethodSpy(self._name, self._stub, self._signature)
 
     def __call__(self: MethodMock, *args, **kwargs) -> T:
         return self._spy(*args, **kwargs)
