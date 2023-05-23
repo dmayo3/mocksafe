@@ -229,10 +229,10 @@ def test_validates_standard_types(arg_value: Any, param_type: Any):
         # New union syntax in Python 3.10+ only
         *(
             [
-                (True, bool | int),
-                (123, bool | int),
-                ("yes", str | None),
-                (None, str | None),
+                (True, bool | int),  # type: ignore
+                (123, bool | int),  # type: ignore
+                ("yes", str | None),  # type: ignore
+                (None, str | None),  # type: ignore
             ]
             if sys.version_info[:3] >= (3, 10)
             else []
