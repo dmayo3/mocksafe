@@ -3,8 +3,8 @@
     :alt: Github Actions Status
 .. image:: https://codecov.io/gh/dmayo3/mocksafe/branch/main/graph/badge.svg?token=S3JI6OOTGF 
     :target: https://codecov.io/gh/dmayo3/mocksafe
-.. image:: https://readthedocs.org/projects/mocksafe/badge/?version=latest
-    :target: https://mocksafe.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/mocksafe/badge/?version=0.5
+    :target: https://mocksafe.readthedocs.io/en/0.5/?badge=0.5
     :alt: Documentation Status
 .. image:: https://badge.fury.io/py/mocksafe.svg
     :target: https://badge.fury.io/py/mocksafe
@@ -22,7 +22,7 @@
     :target: https://github.com/dmayo3/mocksafe/blob/main/LICENSE
     :alt: MIT License
 
-MockSafe v0.4.1-alpha
+MockSafe v0.5.0-alpha
 ---------------------
 
 A mocking library developed to enable static and runtime type checking of your mocks to help keep them up-to-date with your production code.
@@ -38,13 +38,13 @@ Install and quickstart
 
     pip install mocksafe
 
-`Library Usage <https://mocksafe.readthedocs.io/en/latest/usage.html>`_
+`Library Usage <https://mocksafe.readthedocs.io/en/0.5/usage.html>`_
 
 Links
 ----------------------
 
 :Install: `PyPi <https://pypi.org/project/mocksafe>`_
-:Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/0.4/>`_
+:Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/0.5/>`_
 :License: `MIT <https://github.com/dmayo3/mocksafe/blob/main/LICENSE>`_
 :Source:  `GitHub <https://github.com/dmayo3/mocksafe>`_
 :Issues:  `GitHub Issues <https://github.com/dmayo3/mocksafe/issues>`_
