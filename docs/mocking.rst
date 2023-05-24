@@ -72,54 +72,37 @@ For example:
 Mocking Modules
 ---------------
 
-MockSafe is still under development and doesn't have first class
-support for this yet, but it is still possible to do in a type
-safe manner with a workaround.
+To mock a module you need to use a separate function, but otherwise
+everything else is the same as for mocking a regular class / type.
 
-In order to mock the module you need a class that mimics the
-interface of the module that you wish to mock. You may need
-to define this yourself in the test.
+One difference is that you can't use a module as a type hint in
+Python, meaning you won't get static type checks. The calls are
+still checked by MockSafe at runtime however.
 
-For convenience, here is an example of where a class already
-exists corresponding to a module in the standard library:
+However, it's possible to use :py:func:`unittest.mock.patch`
+to swap real module calls for mocked module calls during test
+runtime, and the static type checker should be able to verify
+calls the same as usual.
 
-
-.. doctest::
-
-    >>> from random import Random
-    >>> from mocksafe import mock, when
-
-    >>> random: Random = mock(Random)
-
-    >>> when(random.random).any_call().then_return(0.123)
-    >>> random.random()
-    0.123
-
-
-It just happens that the :py:mod:`random` is implemented
-by a hidden instance of the :py:class:`random.Random`.
-
-This is often not the case however, so as mentioned above
-you may need to create a class that mirrors the parts of the
-module you need to mock.
-
-For example:
+Example:
 
 .. doctest::
 
     >>> import gzip
-    >>> from mocksafe import mock, when
+    >>> from mocksafe import mock_module, when
 
-    >>> class GZip:
-    ...     def compress(self, data: bytes) -> bytes:
-    ...         return gzip.compress(data)
-
-    >>> mock_gzip: GZip = mock(GZip)
+    >>> mock_gzip = mock_module(gzip)
 
     >>> when(mock_gzip.compress).any_call().then_return(b"super compressed")
 
     >>> mock_gzip.compress(b"Lots of content here!")
     b'super compressed'
+
+    # ❌ gzip.squash() does not exist
+    >>> mock_gzip.squash(b"This is an invalid call")
+    Traceback (most recent call last):
+    ...
+    AttributeError: type object <module 'gzip'> has no attribute 'squash'
 
 
 Mocking Functions
@@ -128,7 +111,7 @@ Mocking Functions
 This is another thing where first class support is not yet included.
 
 To workaround this limitation you'll need to wrap the function in a
-class for the time being, the same as the workaround above for
+class or module for the time being, the same as the workaround above for
 mocking modules.
 
 .. doctest::
@@ -142,6 +125,26 @@ mocking modules.
 
     >>> mock_calc: FactorialCalc = mock(FactorialCalc)
     >>> mock_factorial = mock_calc.factorial
+
+    >>> when(mock_factorial).called_with(mock_factorial(3)).then_return(6)
+
+    >>> mock_factorial(3)
+    6
+
+
+You can also create an ad hoc type as a mockable specification:
+
+.. doctest::
+
+    >>> from math import factorial
+    >>> from mocksafe import mock, when
+
+    >>> def factorial(n: int) -> int:
+    ...     return factorial(n)
+
+    >>> fcalc = type('FactorialCalculator', (), {"factorial": factorial})
+
+    >>> mock_factorial = mock(fcalc).factorial
 
     >>> when(mock_factorial).called_with(mock_factorial(3)).then_return(6)
 
