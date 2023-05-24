@@ -44,7 +44,7 @@ Links
 ----------------------
 
 :Install: `PyPi <https://pypi.org/project/mocksafe>`_
-:Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/https://mocksafe.readthedocs.io/en/0.4/>`_
+:Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/0.4/>`_
 :License: `MIT <https://github.com/dmayo3/mocksafe/blob/main/LICENSE>`_
 :Source:  `GitHub <https://github.com/dmayo3/mocksafe>`_
 :Issues:  `GitHub Issues <https://github.com/dmayo3/mocksafe/issues>`_
