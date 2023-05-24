@@ -6,6 +6,8 @@ API
 
    mocksafe
    mocksafe.mock
+   mocksafe.mock_module
+   mocksafe.mock_reset
    mocksafe.when
    mocksafe.that
    mocksafe.spy

@@ -10,8 +10,8 @@ Why Use MockSafe?
 
 1. **Type Safety:** it's designed to help you keep your mocks in sync
 with your production code by ensuring type safety for both static type
-checkers, as well as some built-in runtime checks. Just make sure you
-add type hints to the code that you're mocking.
+checkers, as well as some built-in runtime checks. For more information
+see: :doc:`typesafety`.
 
 2. **Fluent API:** designed to make your mocking code easy to read,
 write, and understand with BDD inspired method naming.
@@ -24,12 +24,13 @@ such as `assert_was_called_with()`. Just use Python's native `assert`
 keyword.
 
 5. **Less Magic**: you won't get unexpected, unpredictable behavior
-caused by the kind of mocking you get with ``unittest.mock``.
-Only the methods on the class you're mocking will be stubbed, and by
-default these stubbed methods will return predictable defaults (such as 0,
-False, or None).
+caused by the kind of mocking you get by default with
+:py:mod:`unittest.mock`. It's even safer than using
+:py:class:`unittest.mock.NonCallableMock` with the `spec_set`
+parameter, which is the strictest mode that module provides.
 
-6. **No Dependencies**: MockSafe is currently free of dependencies other than pytest. If we decide to add any in future we'll try to keep it minimal if possible.
+6. **No Dependencies**: MockSafe is currently free of dependencies.
+If we decide to add any in future we'll try to keep it minimal if possible.
 
 
 Installation
@@ -44,13 +45,6 @@ Getting Started
 ---------------
 
 For an example of the basics see the :doc:`usage` page.
-
-
-Type Safety
------------
-
-To find out more about the main reason this library was
-created, you can see the :doc:`typesafety` page.
 
 
 Contents

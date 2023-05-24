@@ -1,7 +1,8 @@
-from random import Random
+import random
+from types import ModuleType
 from typing import Optional
 import pytest
-from mocksafe import mock, when, that, spy
+from mocksafe import mock, mock_module, when, that, spy
 
 
 class MyClass:
@@ -233,8 +234,25 @@ def test_stub_consecutive_calls_with_error():
 
 
 def test_mock_random_class():
-    mock_random: Random = mock(Random)
+    mock_random: random.Random = mock(random.Random)
 
     when(mock_random.random).any_call().then_return(0.123)
 
     assert mock_random.random() == 0.123
+
+
+def test_mock_random_module():
+    mock_random = mock_module(random)
+
+    assert isinstance(mock_random, ModuleType)
+
+    when(mock_random.random).any_call().then_return(0.123)
+
+    assert mock_random.random() == 0.123
+
+    assert that(mock_random.random).was_called
+    assert that(mock_random.random).num_calls == 1
+    assert that(mock_random.random).last_call == ()
+
+    with pytest.raises(AttributeError):
+        mock_random.foobar()

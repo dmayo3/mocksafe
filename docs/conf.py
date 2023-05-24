@@ -31,6 +31,6 @@ def setup(app):
 
 doctest_global_setup = """
 from random import Random
-from mocksafe import mock, when, that, spy
+from mocksafe import mock, mock_module, when, that, spy
 mock_random: Random = mock(Random)
 """

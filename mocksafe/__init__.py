@@ -4,11 +4,13 @@ The base mocksafe module.
 See:
 
  - :meth:`mocksafe.mock`
+ - :meth:`mocksafe.mock_module`
+ - :meth:`mocksafe.mock_reset`
  - :meth:`mocksafe.when`
  - :meth:`mocksafe.that`
  - :meth:`mocksafe.spy`
 """
-from mocksafe.mock import mock, mock_reset
+from mocksafe.mock import mock, mock_module, mock_reset
 from mocksafe.when_then import when
 from mocksafe.that import that, spy
 

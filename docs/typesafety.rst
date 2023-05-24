@@ -1,9 +1,21 @@
 Type Safety
 ===========
 
-Normally (most of) these issues would be caught by static type checkers
-such as mypy, but for the sake of demonstration this shows the runtime
-checks that are built in to MockSafe.
+MockSafe is designed to help you keep your mocks in sync with your
+production code by ensuring type safety for both static type
+checkers, as well as some built-in runtime checks.
+
+Make sure you add `type hints <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`_ to the code that you're mocking to get the
+full benefit.
+
+Even without hints it still checks that the correct positional
+and keyword arguments are passed during your tests.
+
+Below is an example of the runtime type checking.
+
+Usually (most of) these issues would be caught by static type checkers
+such as mypy, but the runtime checks act as a safety net for cases
+where they aren't.
 
 .. doctest::
 
