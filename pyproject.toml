@@ -1,6 +1,6 @@
 [project]
 name = "mocksafe"
-version = "0.5.0-alpha"
+version = "0.6.0-alpha"
 
 description = "A mocking library developed to enable static and runtime type checking of your mocks to keep them in sync with production code."
 
@@ -32,7 +32,7 @@ keywords = ["mock", "mocking", "typed", "typing", "typesafe", "testing", "tests"
 dependencies = []
 
 [project.urls]
-Documentation = "https://mocksafe.readthedocs.io/en/0.5/"
+Documentation = "https://mocksafe.readthedocs.io/en/0.6/"
 Source = "https://github.com/dmayo3/mocksafe"
 
 [build-system]
@@ -40,7 +40,7 @@ build-backend = "setuptools.build_meta"
 requires = ["setuptools", "wheel"]
 
 [tool.bumpver]
-current_version = "0.5.0-alpha"
+current_version = "0.6.0-alpha"
 version_pattern = "MAJOR.MINOR.PATCH[-TAG]"
 commit_message = "Bump version {old_version} -> {new_version}"
 commit = true
@@ -53,8 +53,8 @@ push = false
     'version = "{version}"',
 ]
 "mocksafe/__init__.py" = [
-    "{version}",
+    '__version__ = "{version}"',
 ]
 "README.rst" = [
-    "{version}",
+    'MockSafe v{version}',
 ]
