@@ -4,7 +4,7 @@ from itertools import count
 from types import ModuleType
 from typing import Generic, TypeVar, Optional, Union, Any, cast
 from mocksafe.custom_types import MethodName, CallMatcher, Call
-from mocksafe.spy import MethodSpy
+from mocksafe.spy import MethodSpy, CallRecorder
 from mocksafe.stub import MethodStub, ResultsProvider
 from mocksafe.call_matchers import ExactCallMatcher
 
@@ -189,7 +189,7 @@ class SafeMock(Generic[T]):
             ) from None
 
 
-class MethodMock(Generic[T]):
+class MethodMock(CallRecorder, Generic[T]):
     def __init__(
         self: MethodMock,
         spec: type[T],
