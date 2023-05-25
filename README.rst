@@ -9,6 +9,9 @@
 .. image:: https://badge.fury.io/py/mocksafe.svg
     :target: https://badge.fury.io/py/mocksafe
     :alt: PyPI Package
+.. image:: https://img.shields.io/badge/semver-2.0.0-blue
+    :target: https://semver.org/
+    :alt: Follows the Semantic Versioning 2.0.0 spec
 .. image:: https://img.shields.io/pypi/pyversions/mocksafe.svg
     :target: https://pypi.org/project/mocksafe
     :alt: Supported versions
