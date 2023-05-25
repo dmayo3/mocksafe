@@ -1,6 +1,6 @@
 from __future__ import annotations
 from inspect import Signature
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Protocol, runtime_checkable
 from collections.abc import Callable
 from mocksafe.custom_types import MethodName, Call
 from mocksafe.call_type_validator import CallTypeValidator
@@ -9,7 +9,26 @@ from mocksafe.call_type_validator import CallTypeValidator
 T = TypeVar("T")
 
 
-class MethodSpy(Generic[T]):
+@runtime_checkable
+class CallRecorder(Protocol):
+    """
+    Generic Protocol for getting information about
+    mocked / spied calls.
+    """
+
+    @property
+    def name(self: CallRecorder) -> MethodName:
+        ...
+
+    @property
+    def calls(self: CallRecorder) -> list[Call]:
+        ...
+
+    def nth_call(self: CallRecorder, n: int) -> Call:
+        ...
+
+
+class MethodSpy(CallRecorder, Generic[T]):
     def __init__(
         self: MethodSpy,
         name: MethodName,

@@ -1,18 +1,17 @@
 from __future__ import annotations
-from typing import Union
-from collections.abc import Callable
+from typing import Union, Any
 from mocksafe.custom_types import Call
-from mocksafe.mock import MethodMock
+from mocksafe.spy import CallRecorder
 
 
 Args = tuple
 
 
-def that(mock_method: Callable) -> MockCalls:
+def that(mocked: Any) -> MockCalls:
     """
     Used to assert how a mocked method was called.
 
-    :param mock_method: a method on a mock object
+    :param mocked: a method on a mock object
     :rtype: MockCalls
 
     :Example:
@@ -20,17 +19,20 @@ def that(mock_method: Callable) -> MockCalls:
 
     :Example:
         >>> that(mock_random.random)
-        MockCalls[random();num_calls=0]
+        MockCalls[random;num_calls=0]
     """
-    if not isinstance(mock_method, MethodMock):
-        raise ValueError("Not a SafeMocked method: mock_method")
-    return MockCalls(mock_method)
+    if not isinstance(mocked, CallRecorder):
+        raise TypeError(
+            f"Expected a mocked method/function/property but got '{mocked}'"
+            f" ({type(mocked)})"
+        )
+    return MockCalls(mocked)
 
 
-def spy(mock_method: Callable) -> MockCalls:
+def spy(mocked: Any) -> MockCalls:
     """
     This is used to capture the arguments that were
-    passed when the given ``mock_method`` was called,
+    passed when the given ``mocked`` was called,
     which is useful for making more detailed assertions
     on the contents.
 
@@ -40,12 +42,12 @@ def spy(mock_method: Callable) -> MockCalls:
     fluently, for example ``assert that(mock.foo).was_called``
     versus ``args = spy(mock.foo).last_call``.
 
-    :param mock_method: a method on a mock object
+    :param mocked: a method on a mock object
     :rtype: MockCalls
 
     :Example:
         >>> spy(mock_random.random)
-        MockCalls[random();num_calls=0]
+        MockCalls[random;num_calls=0]
 
     :Example:
         >>> spy(mock_random.random).was_not_called
@@ -65,7 +67,7 @@ def spy(mock_method: Callable) -> MockCalls:
         >>> spy(mock_random.randint).last_call
         (0, 10)
     """
-    return that(mock_method)
+    return that(mocked)
 
 
 class MockCalls:
@@ -104,11 +106,11 @@ class MockCalls:
         >>> assert that(mock_random.randint).nth_call(0) == ((), {"a":1, "b":10})
     """
 
-    def __init__(self: MockCalls, method_mock: MethodMock):
-        self._method_mock = method_mock
+    def __init__(self: MockCalls, call_recorder: CallRecorder):
+        self._call_recorder = call_recorder
 
     def __repr__(self: MockCalls) -> str:
-        return f"MockCalls[{self._method_mock.name}();num_calls={self.num_calls}]"
+        return f"MockCalls[{self._call_recorder.name};num_calls={self.num_calls}]"
 
     @property
     def was_called(self: MockCalls) -> bool:
@@ -123,7 +125,7 @@ class MockCalls:
     @property
     def num_calls(self: MockCalls) -> int:
         """Returns the number of calls made to the mocked method."""
-        return len(self._method_mock.calls)
+        return len(self._call_recorder.calls)
 
     @property
     def last_call(self: MockCalls) -> Union[Args, Call]:
@@ -132,7 +134,7 @@ class MockCalls:
 
     def nth_call(self: MockCalls, n: int) -> Union[Args, Call]:
         """Returns details of the Nth call made to the mocked method."""
-        call = self._method_mock.nth_call(n)
+        call = self._call_recorder.nth_call(n)
 
         args, kwargs = call
 

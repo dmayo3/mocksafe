@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Generic, Union, TypeVar
+from typing import Generic, Union, TypeVar, Any
 from collections.abc import Callable
 from mocksafe.custom_types import CallMatcher
-from mocksafe.mock import MethodMock, ResultsProvider
+from mocksafe.mock import SafeMock, MethodMock, ResultsProvider
+from mocksafe.mock_property import PropertyStubber
 from mocksafe.call_matchers import AnyCallMatcher, CustomCallMatcher
 
 
@@ -29,6 +30,21 @@ def when(mock_method: Callable[..., T]) -> WhenStubber[T]:
             f"Not a SafeMocked method: {mock_method} ({type(mock_method)})"
         )
     return WhenStubber(mock_method)
+
+
+def stub(mock_object: Any) -> PropertyStubber:
+    """
+    Prepare to stub a property on ``mock_object``.
+
+    See the :doc:`../mocking` page for more details and an
+    example of how to mock, stub, and verify a property.
+
+    See also: :class:`mocksafe.PropertyStubber`
+    See also: :class:`mocksafe.MockProperty`
+    """
+    if not isinstance(mock_object, SafeMock):
+        raise ValueError(f"Not a SafeMocked object: {mock_object}")
+    return PropertyStubber(mock_object)
 
 
 class WhenStubber(Generic[T]):

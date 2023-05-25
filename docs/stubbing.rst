@@ -255,41 +255,39 @@ Stub Fields
 
 The support for this is fairly basic at the moment.
 
+Fields in this instance means attributes that hold values, but that are not methods or properties.
+
+MockSafe only knows about fields if they have type annotations defined on the class (as in the example below). More technically this means an annotation (type hint) declared on a class attribute that has no value. For more information see the `definition in the Python Glossary <https://docs.python.org/3/glossary.html#term-variable-annotation>`_.
+
+There is also support for the non-standard `__attrs__` property that the `requests` library uses to store its own list of fields since this is such a common use case.
+
+You need to set the field before the property can be accessed, otherwise you will get an error.
+
+Example:
+
 .. doctest::
 
-    >>> class Menu:
-    ...     def __init__(self):
-    ...         self.special = "Spam"
+    >>> from mocksafe import mock
 
-    >>> menu = mock(Menu)
+    >>> class HolyHandGrenade:
+    ...     countdown: int
 
-    >>> menu.special = "Vegan Spam"
+    >>> mock_hhg: HolyHandGrenade = mock(HolyHandGrenade)
 
-    >>> menu.special
-    'Vegan Spam'
+    >>> mock_hhg.countdown
+    Traceback (most recent call last):
+    ...
+    AttributeError: SafeMock[HolyHandGrenade#6].countdown field value not stubbed.
+
+    >>> mock_hhg.countdown = 3
+    >>> mock_hhg.countdown
+    3
 
 
 Stub Properties
 ^^^^^^^^^^^^^^^
 
-.. warning::
-
-    At the moment support for properties does not work.
-
-
-.. doctest::
-
-    >>> class Menu:
-    ...     @property
-    ...     def daily_special(self) -> str:
-    ...         return "Spam"
-
-    >>> menu = mock(Menu)
-    >>> menu.daily_special
-    Traceback (most recent call last):
-    ...
-    ValueError: MockSafe doesn't currently support properties, so SafeMock[Menu#...].daily_special could not be mocked.
-
+See the :doc:`mocking` page for how to do this.
 
 
 Raise Error

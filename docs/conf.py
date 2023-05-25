@@ -20,6 +20,8 @@ html_theme = "sphinx_rtd_theme"
 
 
 def skip(app, what, name, obj, skip, options):
+    if name == "__setattr__":
+        return skip
     if name.startswith("_"):
         return True
     return skip
@@ -29,8 +31,13 @@ def setup(app):
     app.connect("autodoc-skip-member", skip)
 
 
+autodoc_default_options = {
+    "undoc-members": False,
+}
+
+
 doctest_global_setup = """
 from random import Random
-from mocksafe import mock, mock_module, when, that, spy
+from mocksafe import MockProperty, mock, mock_module, stub, when, that, spy
 mock_random: Random = mock(Random)
 """
