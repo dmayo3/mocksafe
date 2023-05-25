@@ -105,6 +105,50 @@ Example:
     AttributeError: type object <module 'gzip'> has no attribute 'squash'
 
 
+Mocking Properties
+------------------
+
+Mocking properties is particularly tricky in Python and so it's not as convenient to mock them in MockSafe.
+
+Currently only property getters are supported.
+
+Example:
+
+.. doctest::
+
+    >>> from mocksafe import MockProperty, mock, stub, that
+
+    >>> class Philosopher:
+    ...     @property
+    ...     def meaning_of_life(self) -> str:
+    ...         return "TODO: discover the meaning of life"
+
+    >>> # Define a MockProperty that holds a str value
+    >>> # and set it's initial value to ""
+    >>> mock_meaning: MockProperty[str] = MockProperty("")
+
+    >>> philosopher: Philosopher = mock(Philosopher)
+
+    >>> # Mock the meaning_of_life property
+    >>> stub(philosopher).meaning_of_life = mock_meaning
+
+    >>> philosopher.meaning_of_life
+    ''
+
+    >>> mock_meaning.return_value = "42"
+
+    >>> philosopher.meaning_of_life
+    '42'
+
+    >>> assert that(mock_meaning).was_called
+    >>> assert that(mock_meaning).num_calls == 2
+    >>> assert that(mock_meaning).last_call == ()
+
+
+For more information see :class:`mocksafe.MockProperty` and
+:meth:`mocksafe.stub`.
+
+
 Mocking Functions
 -----------------
 

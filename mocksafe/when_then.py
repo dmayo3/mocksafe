@@ -35,6 +35,12 @@ def when(mock_method: Callable[..., T]) -> WhenStubber[T]:
 def stub(mock_object: Any) -> PropertyStubber:
     """
     Prepare to stub a property on ``mock_object``.
+
+    See the :doc:`../mocking` page for more details and an
+    example of how to mock, stub, and verify a property.
+
+    See also: :class:`mocksafe.PropertyStubber`
+    See also: :class:`mocksafe.MockProperty`
     """
     if not isinstance(mock_object, SafeMock):
         raise ValueError(f"Not a SafeMocked object: {mock_object}")
