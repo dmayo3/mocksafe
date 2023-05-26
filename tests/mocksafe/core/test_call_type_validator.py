@@ -20,7 +20,7 @@ from fractions import Fraction
 
 import pytest
 
-from mocksafe.call_type_validator import CallTypeValidator
+from mocksafe.core.call_type_validator import CallTypeValidator
 
 
 ANY_NAME = "any_name"

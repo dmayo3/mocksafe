@@ -1,5 +1,9 @@
-from mocksafe.call_matchers import AnyCallMatcher, ExactCallMatcher, CustomCallMatcher
-from mocksafe.custom_types import Call
+from mocksafe.core.call_matchers import (
+    AnyCallMatcher,
+    ExactCallMatcher,
+    CustomCallMatcher,
+)
+from mocksafe.core.custom_types import Call
 
 
 ANY_CALL: Call = ((), {})

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections.abc import Callable
-from mocksafe.custom_types import Call
+from mocksafe.core.custom_types import Call
 
 
 class AnyCallMatcher:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Union, Any
-from mocksafe.custom_types import Call
-from mocksafe.spy import CallRecorder
+from mocksafe.core.custom_types import Call
+from mocksafe.core.spy import CallRecorder
 
 
 Args = tuple
