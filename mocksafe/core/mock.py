@@ -3,10 +3,10 @@ import inspect
 from itertools import count
 from types import ModuleType
 from typing import Generic, TypeVar, Optional, Union, Any, cast, get_type_hints
-from mocksafe.custom_types import MethodName, CallMatcher, Call
-from mocksafe.spy import MethodSpy, CallRecorder
-from mocksafe.stub import MethodStub, ResultsProvider
-from mocksafe.call_matchers import ExactCallMatcher
+from mocksafe.core.custom_types import MethodName, CallMatcher, Call
+from mocksafe.core.spy import MethodSpy, CallRecorder
+from mocksafe.core.stub import MethodStub, ResultsProvider
+from mocksafe.core.call_matchers import ExactCallMatcher
 
 
 T = TypeVar("T")

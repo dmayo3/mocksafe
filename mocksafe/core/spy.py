@@ -2,8 +2,8 @@ from __future__ import annotations
 from inspect import Signature
 from typing import Generic, TypeVar, Protocol, runtime_checkable
 from collections.abc import Callable
-from mocksafe.custom_types import MethodName, Call
-from mocksafe.call_type_validator import CallTypeValidator
+from mocksafe.core.custom_types import MethodName, Call
+from mocksafe.core.call_type_validator import CallTypeValidator
 
 
 T = TypeVar("T")

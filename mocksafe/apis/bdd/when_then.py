@@ -1,10 +1,12 @@
 from __future__ import annotations
-from typing import Generic, Union, TypeVar, Any
+import inspect
+from typing import Generic, Union, TypeVar, Any, cast
 from collections.abc import Callable
-from mocksafe.custom_types import CallMatcher
-from mocksafe.mock import SafeMock, MethodMock, ResultsProvider
-from mocksafe.mock_property import PropertyStubber
-from mocksafe.call_matchers import AnyCallMatcher, CustomCallMatcher
+from mocksafe.core.custom_types import CallMatcher
+from mocksafe.core.mock_property import MockProperty
+from mocksafe.core.mock import SafeMock, MethodMock, ResultsProvider
+from mocksafe.core.call_type_validator import type_match
+from mocksafe.core.call_matchers import AnyCallMatcher, CustomCallMatcher
 
 
 T = TypeVar("T")
@@ -20,7 +22,7 @@ def when(mock_method: Callable[..., T]) -> WhenStubber[T]:
 
     :Example:
         >>> when(mock_random.random)
-        <mocksafe.when_then.WhenStubber object at 0x...>
+        <mocksafe.apis.bdd.when_then.WhenStubber object at 0x...>
 
     :Example:
         >>> when(mock_random.random).any_call().then_return(0.31)
@@ -240,3 +242,82 @@ class LastCallStubber(Generic[T]):
             )
 
         self._method_mock.stub_last_call(list(side_effects))
+
+
+class PropertyStubber:
+    """
+    Used to set a MockProperty on an existing mock object.
+
+    You can obtain an instance of this class using
+    :func:`mocksafe.stub`.
+
+    Typically you wouldn't instantiate or use this class
+    directly.
+
+    :Example:
+        >>> from mocksafe import PropertyStubber, MockProperty, mock, stub
+
+        >>> class Philosopher:
+        ...     @property
+        ...     def meaning_of_life(self) -> str:
+        ...         return "TODO: discover the meaning of life"
+
+        >>> philosopher = mock(Philosopher)
+
+        >>> # Contrived example showing intermediate step:
+        >>> property_stubber: PropertyStubber = stub(philosopher)
+
+        >>> # Set property attribute with a MockProperty[str]
+        >>> property_stubber.meaning_of_life = MockProperty("")
+
+        >>> # More usual example:
+        >>> stub(philosopher).meaning_of_life = MockProperty("")
+
+    See also: :class:`mocksafe.MockProperty`
+    """
+
+    _mock_object: SafeMock
+
+    def __init__(self: PropertyStubber, mock_object: SafeMock):
+        """
+        Typically you wouldn't instantiate or use this class
+        directly, use :func:`mocksafe.stub` to obtain an instance of
+        this class instead.
+        """
+        super().__setattr__("_mock_object", mock_object)
+
+    def __setattr__(self: PropertyStubber, prop_name: str, value: MockProperty):
+        """
+        Magic method for setting :class:`mocksafe.MockProperty` objects
+        as class attributes on the mocked object.
+
+        :raise AttributeError: if the attribute being set doesn't exist on the
+                               original object
+        :raise TypeError: if the :class:`mocksafe.MockProperty` type doesn't
+                          match the type returned by the real property
+        """
+        prop_attr = self._mock_object.get_original_attr(prop_name)
+        try:
+            if cast(property, prop_attr).fget is None:
+                raise TypeError
+        except (AttributeError, TypeError):
+            raise TypeError(
+                (
+                    f"{self._mock_object}.{prop_name} attribute is not a getter "
+                    f"property. Actual attribute: {prop_attr} ({type(prop_attr)})."
+                ),
+            ) from None
+
+        sig = inspect.signature(prop_attr.fget)
+        has_type = sig.return_annotation != inspect.Signature.empty
+
+        if has_type and not type_match(value.return_value, sig.return_annotation):
+            raise TypeError(
+                (
+                    f"{self._mock_object}.{prop_name} property has return type"
+                    f" {sig.return_annotation}, therefore it can't be stubbed with"
+                    f" {value}."
+                ),
+            )
+
+        setattr(type(self._mock_object), prop_name, value)

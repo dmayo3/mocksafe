@@ -1,5 +1,5 @@
 from __future__ import annotations
-from mocksafe.mock import SafeMock, MethodMock, mock_reset
+from mocksafe.core.mock import SafeMock, MethodMock, mock_reset
 
 
 class TestClass:

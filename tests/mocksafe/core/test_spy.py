@@ -1,7 +1,7 @@
 from __future__ import annotations
 import inspect
 import pytest
-from mocksafe.spy import MethodSpy
+from mocksafe.core.spy import MethodSpy
 
 
 class TestClass:

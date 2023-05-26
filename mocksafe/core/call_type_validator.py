@@ -6,7 +6,7 @@ from collections.abc import Sequence, Mapping
 from urllib.parse import urlencode
 from types import GenericAlias
 from typing import Union, Any, cast
-from mocksafe.custom_types import MethodName
+from mocksafe.core.custom_types import MethodName
 
 
 class CallTypeValidator:
