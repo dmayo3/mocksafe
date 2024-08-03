@@ -38,3 +38,26 @@ def test_mock_getter_prop():
     assert that(mock_meaning).was_called
     assert that(mock_meaning).num_calls == 3
     assert that(mock_meaning).last_call == ()
+
+
+def test_mocking_props_across_instances():
+    plato: Philosopher = mock(Philosopher)
+    meaning: MockProperty[str] = MockProperty("")
+    meaning.return_value = "wisdom and virtue and all that stuff"
+    stub(plato).meaning_of_life = meaning
+
+    descartes: Philosopher = mock(Philosopher)
+    contemplation: MockProperty[str] = MockProperty("")
+    stub(descartes).meaning_of_life = contemplation
+    contemplation.return_value = "I think, therefore I like spam"
+
+    assert "wisdom" in plato.meaning_of_life
+    assert "think" in descartes.meaning_of_life
+
+    assert that(meaning).was_called
+    assert that(meaning).num_calls == 1
+    assert that(meaning).last_call == ()
+
+    assert that(contemplation).was_called
+    assert that(contemplation).num_calls == 1
+    assert that(contemplation).last_call == ()
