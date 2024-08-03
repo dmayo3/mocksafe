@@ -1,6 +1,7 @@
 import random
 from types import ModuleType
 from typing import Optional
+from uuid import UUID
 import pytest
 from mocksafe import mock, mock_module, when, that, spy
 
@@ -8,6 +9,9 @@ from mocksafe import mock, mock_module, when, that, spy
 class MyClass:
     def foo(self, bar: str, baz: int = 123) -> int:
         return baz + len(bar)
+
+    def bar(self) -> UUID:
+        return UUID("00000000-0000-0000-0000-000000000000")
 
     def quux(self) -> Optional[str]:
         return "something"
@@ -256,3 +260,12 @@ def test_mock_random_module():
 
     with pytest.raises(AttributeError):
         mock_random.foobar()
+
+
+def test_mock_return_uuid():
+    my_class_mock: MyClass = mock(MyClass)
+    my_uuid = UUID("00000000-0000-0000-0000-000000000000")
+
+    when(my_class_mock.bar).any_call().then_return(my_uuid)
+
+    assert my_class_mock.bar() == my_uuid
