@@ -108,9 +108,7 @@ Example:
 Mocking Properties
 ------------------
 
-Mocking properties is particularly tricky in Python and so it's not as convenient to mock them in MockSafe.
-
-Currently only property getters are supported.
+Mocking properties is a bit more challenging in Python and so it's not as convenient to mock them in MockSafe compared to methods.
 
 Example:
 
