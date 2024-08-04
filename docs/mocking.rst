@@ -37,7 +37,7 @@ This is the most straightforward case:
     >>> mock_lumberjack: Lumberjack = mock(Lumberjack)
 
     >>> mock_lumberjack
-    SafeMock[Lumberjack#...]
+    SafeMock(<class 'Lumberjack'>)
 
 
 The generic mock function will return the same type of

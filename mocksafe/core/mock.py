@@ -3,7 +3,8 @@ import inspect
 from itertools import count
 from types import ModuleType
 from typing import Generic, TypeVar, Optional, Union, Any, cast, get_type_hints
-from mocksafe.core.custom_types import MethodName, CallMatcher, Call
+from mocksafe.core.custom_types import MethodName, PropertyName, CallMatcher, Call
+from mocksafe.core.mock_property import MockProperty
 from mocksafe.core.spy import MethodSpy, CallRecorder
 from mocksafe.core.stub import MethodStub, ResultsProvider
 from mocksafe.core.call_matchers import ExactCallMatcher
@@ -36,7 +37,7 @@ def mock(spec: type[T], name: Optional[str] = None) -> T:
         >>> from random import Random
         >>> mock_random: Random = mock(Random)
         >>> mock_random
-        SafeMock[Random#...]
+        SafeMock(<class 'random.Random'>)
 
     To stub a mocked method see:
 
@@ -72,8 +73,9 @@ def mock_module(module: M, name: Optional[str] = None) -> M:
     :Example:
         >>> import random
         >>> mock_random = mock_module(random)
-        >>> mock_random
-        SafeMock[random#...]
+        >>> mock_random  # doctest: +NORMALIZE_WHITESPACE
+        SafeMock(<class 'MockSpec(module=random)'>,
+                 <module 'random' from '.../random.py'>)
 
     To stub a mocked function on the module see:
 
@@ -130,9 +132,12 @@ class SafeMock(Generic[T]):
         :param module: optional original module if applicable, for debugging
         """
         identity = name or next(MOCK_NUMBER)
+        self._custom_name = name
         self._original: Union[type[T], M] = module or spec
         self._original_class: type = module.__class__ if module else spec
+        self._module = module
         self._mocks: dict[MethodName, MethodMock] = {}
+        self._properties: dict[PropertyName, MockProperty] = {}
 
         self._spec = spec
         self._name = f"{self._original.__name__}#{identity}"
@@ -151,19 +156,30 @@ class SafeMock(Generic[T]):
     def __class__(self: SafeMock):
         return self._original_class
 
-    def __repr__(self: SafeMock) -> str:
+    def __str__(self: SafeMock) -> str:
         return f"SafeMock[{self._name}]"
 
-    def __getattr__(self: SafeMock, attr_name: str) -> MethodMock:
+    def __repr__(self: SafeMock) -> str:
+        constructor_args: list[str] = [repr(self._spec)]
+        if self._custom_name:
+            constructor_args.append(repr(self._custom_name))
+        if self._module:
+            constructor_args.append(repr(self._module))
+
+        return f"SafeMock({', '.join(constructor_args)})"
+
+    def __getattr__(self: SafeMock, attr_name: str) -> MethodMock | Any:
         original_attr = self.get_original_attr(attr_name)
 
         if isinstance(original_attr, property):
-            raise ValueError(
-                (
-                    "MockSafe doesn't currently support properties, "
-                    f"so {self}.{attr_name} could not be mocked."
-                ),
-            )
+            prop = self._properties.get(attr_name)
+            if not prop or not prop.fget:
+                # TODO: implement support for automatic mocking, like we do for
+                # MethodMock below
+                raise ValueError(
+                    f"Property: {self}.{attr_name} needs to be mocked before use",
+                )
+            return prop.fget(prop)
 
         if attr_name not in self._mocks:
             signature = inspect.signature(original_attr)

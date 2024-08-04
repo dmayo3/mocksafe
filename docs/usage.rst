@@ -18,7 +18,7 @@ then check the result and assert the mocked method was called.
 
     >>> mock_lumberjack: Lumberjack = mock(Lumberjack)
     >>> mock_lumberjack
-    SafeMock[Lumberjack#...]
+    SafeMock(<class 'Lumberjack'>)
 
     >>> # Stub the chop method
     >>> when(
