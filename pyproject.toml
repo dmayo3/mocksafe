@@ -35,6 +35,9 @@ dependencies = []
 Documentation = "https://mocksafe.readthedocs.io/en/0.6/"
 Source = "https://github.com/dmayo3/mocksafe"
 
+[project.optional-dependencies]
+docs = ["sphinx-rtd-theme >= 1.2.0"]
+
 [build-system]
 build-backend = "setuptools.build_meta"
 requires = ["setuptools", "wheel"]
