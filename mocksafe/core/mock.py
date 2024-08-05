@@ -200,18 +200,36 @@ class SafeMock(Generic[T]):
 
         return self._mocks[attr_name]
 
-    def __setattr__(self: SafeMock, attr_name: str, value: Any):
-        original_attr = self.get_original_attr(attr_name)
+    def __setattr__(self: SafeMock, attr_name: str, value: Any) -> None:
+        try:
+            spec_annotations = get_type_hints(self._spec)
+        except (KeyError, AttributeError):
+            spec_annotations = {}
+
+        # Check if there's an attribute already set or a property
+        try:
+            original_attr = self.get_original_attr(attr_name)
+        except AttributeError:
+            original_attr = None
+
+        attr_defined = original_attr or attr_name in spec_annotations
+        attrs_unknown = not original_attr and not spec_annotations
 
         if isinstance(original_attr, property):
             prop = self._properties.get(attr_name)
             if not prop or not prop.fset:
                 raise ValueError(
-                    f"Property: {self}.{attr_name} needs to be mocked before use",
+                    f"Property setter: {self}.{attr_name} needs to be stubbed"
+                    " before use"
                 )
-            return prop.fset(prop, value)
-
-        raise AttributeError(f"Not allowed to set attribute {self}.{attr_name}")
+            prop.fset(prop, value)
+        elif attr_defined or attrs_unknown:
+            self.__dict__[attr_name] = value
+        else:
+            raise AttributeError(
+                f"Cannot set non-existent attribute: {self}.{attr_name} that does"
+                " not seem to exist on the original mocked class"
+            )
 
     def get_original_attr(self: SafeMock, attr_name: str) -> Any:
         try:

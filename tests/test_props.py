@@ -4,7 +4,7 @@ from mocksafe import MockProperty, mock, stub, that
 
 
 class Philosopher:
-    inner_meaning = "42"
+    inner_meaning: str = "42"
 
     @property
     def meaning_of_life(self: Philosopher) -> str:
