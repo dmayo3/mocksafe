@@ -118,6 +118,15 @@ def call_equal_to(exact: Call) -> CallMatcher:
 
 
 class SafeMock(Generic[T]):
+    _custom_name: str | None
+    _original: type[T] | ModuleType
+    _original_class: type
+    _module: ModuleType | None
+    _mocks: dict[MethodName, MethodMock]
+    _properties: dict[PropertyName, MockProperty]
+    _spec: type[T]
+    _name: str
+
     def __init__(
         self: SafeMock,
         spec: type[T],
@@ -132,15 +141,17 @@ class SafeMock(Generic[T]):
         :param module: optional original module if applicable, for debugging
         """
         identity = name or next(MOCK_NUMBER)
-        self._custom_name = name
-        self._original: Union[type[T], M] = module or spec
-        self._original_class: type = module.__class__ if module else spec
-        self._module = module
-        self._mocks: dict[MethodName, MethodMock] = {}
-        self._properties: dict[PropertyName, MockProperty] = {}
 
-        self._spec = spec
-        self._name = f"{self._original.__name__}#{identity}"
+        # We set on __dict__ to avoid invoking __setattr__
+        # and causing infinite recursion
+        self.__dict__["_custom_name"] = name
+        self.__dict__["_original"] = module or spec
+        self.__dict__["_original_class"] = module.__class__ if module else spec
+        self.__dict__["_module"] = module
+        self.__dict__["_mocks"] = {}
+        self.__dict__["_properties"] = {}
+        self.__dict__["_spec"] = spec
+        self.__dict__["_name"] = f"{self._original.__name__}#{identity}"
 
     @property
     def mocked_methods(self: SafeMock) -> dict[MethodName, MethodMock]:
@@ -188,6 +199,19 @@ class SafeMock(Generic[T]):
             )
 
         return self._mocks[attr_name]
+
+    def __setattr__(self: SafeMock, attr_name: str, value: Any):
+        original_attr = self.get_original_attr(attr_name)
+
+        if isinstance(original_attr, property):
+            prop = self._properties.get(attr_name)
+            if not prop or not prop.fset:
+                raise ValueError(
+                    f"Property: {self}.{attr_name} needs to be mocked before use",
+                )
+            return prop.fset(prop, value)
+
+        raise AttributeError(f"Not allowed to set attribute {self}.{attr_name}")
 
     def get_original_attr(self: SafeMock, attr_name: str) -> Any:
         try:

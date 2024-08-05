@@ -45,10 +45,8 @@ class MockProperty(property, CallRecorder, Generic[T]):
         def fset(instance: MockProperty, value: T) -> None:
             instance._return_value = value
 
-        def fdel(instance: MockProperty) -> None:
-            instance._return_value = None
-
-        super().__init__(fget, fset, fdel, None)
+        # TODO: add fdel support
+        super().__init__(fget, fset, None, None)
 
     def __str__(self: MockProperty) -> str:
         if (val := self.return_value) == "":

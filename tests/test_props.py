@@ -4,9 +4,15 @@ from mocksafe import MockProperty, mock, stub, that
 
 
 class Philosopher:
+    inner_meaning = "42"
+
     @property
     def meaning_of_life(self: Philosopher) -> str:
-        return "42"
+        return self.inner_meaning
+
+    @meaning_of_life.setter
+    def meaning_of_life(self: Philosopher, new_meaning: str) -> None:
+        self.inner_meaning = new_meaning
 
 
 def test_mock_getter_prop():
@@ -37,6 +43,29 @@ def test_mock_getter_prop():
 
     assert that(mock_meaning).was_called
     assert that(mock_meaning).num_calls == 3
+    assert that(mock_meaning).last_call == ()
+
+
+def test_mock_setter_prop():
+    mock_meaning: MockProperty[str] = MockProperty("")
+
+    philosopher: Philosopher = mock(Philosopher)
+
+    stub(philosopher).meaning_of_life = mock_meaning
+
+    philosopher.meaning_of_life = (
+        "Try and be nice to people, avoid eating fat, "
+        "read a good book every now and then, get "
+        "some walking in, and try and live together "
+        "in peace and harmony with people of all "
+        "creeds and nations."
+    )
+
+    assert "be nice" in philosopher.meaning_of_life
+    assert "live together in peace" in philosopher.meaning_of_life
+
+    assert that(mock_meaning).was_called
+    assert that(mock_meaning).num_calls == 2
     assert that(mock_meaning).last_call == ()
 
 
