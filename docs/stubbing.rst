@@ -253,11 +253,11 @@ last result will be repeated for every call beyond that.
 Stub Fields
 ^^^^^^^^^^^
 
-The support for this is fairly basic at the moment.
-
 Fields in this instance means attributes that hold values, but that are not methods or properties.
 
-MockSafe only knows about fields if they have type annotations defined on the class (as in the example below). More technically this means an annotation (type hint) declared on a class attribute that has no value. For more information see the `definition in the Python Glossary <https://docs.python.org/3/glossary.html#term-variable-annotation>`_.
+MockSafe only knows about fields if they have type annotations defined on the class (as in the example below).
+More technically this means an annotation (type hint) declared on a class attribute that has no value.
+For more information see the `definition in the Python Glossary <https://docs.python.org/3/glossary.html#term-variable-annotation>`_.
 
 There is also support for the non-standard `__attrs__` property that the `requests` library uses to store its own list of fields since this is such a common use case.
 
