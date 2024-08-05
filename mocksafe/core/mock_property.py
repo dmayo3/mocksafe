@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Optional, Any
 from mocksafe.core.spy import CallRecorder, Generic, TypeVar
 from mocksafe.core.custom_types import MethodName, Call
 
@@ -7,10 +6,9 @@ from mocksafe.core.custom_types import MethodName, Call
 T = TypeVar("T")
 
 
-class MockProperty(CallRecorder, Generic[T]):
+class MockProperty(property, CallRecorder, Generic[T]):
     """
-    A `Descriptor <https://docs.python.org/3/howto/descriptor.html>`_ used
-    to mock a getter property on a mock object.
+    Used to mock a property on a mock object.
 
     It holds a single stubbed value.
 
@@ -40,7 +38,17 @@ class MockProperty(CallRecorder, Generic[T]):
         self._calls: list[Call] = []
         self._return_value: T = return_value
 
-    def __repr__(self: MockProperty) -> str:
+        def fget(instance: MockProperty) -> T:
+            instance._calls.append(((), {}))
+            return instance._return_value
+
+        def fset(instance: MockProperty, value: T) -> None:
+            instance._return_value = value
+
+        # TODO: add fdel support
+        super().__init__(fget, fset, None, None)
+
+    def __str__(self: MockProperty) -> str:
         if (val := self.return_value) == "":
             val = "''"
 
@@ -96,7 +104,3 @@ class MockProperty(CallRecorder, Generic[T]):
                     f"The actual number of calls was {len(self.calls)}."
                 ),
             ) from None
-
-    def __get__(self: MockProperty, obj: Any, objtype: Optional[type] = None) -> T:
-        self._calls.append(((), {}))
-        return self._return_value

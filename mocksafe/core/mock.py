@@ -3,7 +3,8 @@ import inspect
 from itertools import count
 from types import ModuleType
 from typing import Generic, TypeVar, Optional, Union, Any, cast, get_type_hints
-from mocksafe.core.custom_types import MethodName, CallMatcher, Call
+from mocksafe.core.custom_types import MethodName, PropertyName, CallMatcher, Call
+from mocksafe.core.mock_property import MockProperty
 from mocksafe.core.spy import MethodSpy, CallRecorder
 from mocksafe.core.stub import MethodStub, ResultsProvider
 from mocksafe.core.call_matchers import ExactCallMatcher
@@ -36,7 +37,7 @@ def mock(spec: type[T], name: Optional[str] = None) -> T:
         >>> from random import Random
         >>> mock_random: Random = mock(Random)
         >>> mock_random
-        SafeMock[Random#...]
+        SafeMock(<class 'random.Random'>)
 
     To stub a mocked method see:
 
@@ -72,8 +73,9 @@ def mock_module(module: M, name: Optional[str] = None) -> M:
     :Example:
         >>> import random
         >>> mock_random = mock_module(random)
-        >>> mock_random
-        SafeMock[random#...]
+        >>> mock_random  # doctest: +NORMALIZE_WHITESPACE
+        SafeMock(<class 'MockSpec(module=random)'>,
+                 <module 'random' from '.../random.py'>)
 
     To stub a mocked function on the module see:
 
@@ -116,6 +118,15 @@ def call_equal_to(exact: Call) -> CallMatcher:
 
 
 class SafeMock(Generic[T]):
+    _custom_name: str | None
+    _original: type[T] | ModuleType
+    _original_class: type
+    _module: ModuleType | None
+    _mocks: dict[MethodName, MethodMock]
+    _properties: dict[PropertyName, MockProperty]
+    _spec: type[T]
+    _name: str
+
     def __init__(
         self: SafeMock,
         spec: type[T],
@@ -130,12 +141,17 @@ class SafeMock(Generic[T]):
         :param module: optional original module if applicable, for debugging
         """
         identity = name or next(MOCK_NUMBER)
-        self._original: Union[type[T], M] = module or spec
-        self._original_class: type = module.__class__ if module else spec
-        self._mocks: dict[MethodName, MethodMock] = {}
 
-        self._spec = spec
-        self._name = f"{self._original.__name__}#{identity}"
+        # We set on __dict__ to avoid invoking __setattr__
+        # and causing infinite recursion
+        self.__dict__["_custom_name"] = name
+        self.__dict__["_original"] = module or spec
+        self.__dict__["_original_class"] = module.__class__ if module else spec
+        self.__dict__["_module"] = module
+        self.__dict__["_mocks"] = {}
+        self.__dict__["_properties"] = {}
+        self.__dict__["_spec"] = spec
+        self.__dict__["_name"] = f"{self._original.__name__}#{identity}"
 
     @property
     def mocked_methods(self: SafeMock) -> dict[MethodName, MethodMock]:
@@ -151,19 +167,30 @@ class SafeMock(Generic[T]):
     def __class__(self: SafeMock):
         return self._original_class
 
-    def __repr__(self: SafeMock) -> str:
+    def __str__(self: SafeMock) -> str:
         return f"SafeMock[{self._name}]"
 
-    def __getattr__(self: SafeMock, attr_name: str) -> MethodMock:
+    def __repr__(self: SafeMock) -> str:
+        constructor_args: list[str] = [repr(self._spec)]
+        if self._custom_name:
+            constructor_args.append(repr(self._custom_name))
+        if self._module:
+            constructor_args.append(repr(self._module))
+
+        return f"SafeMock({', '.join(constructor_args)})"
+
+    def __getattr__(self: SafeMock, attr_name: str) -> MethodMock | Any:
         original_attr = self.get_original_attr(attr_name)
 
         if isinstance(original_attr, property):
-            raise ValueError(
-                (
-                    "MockSafe doesn't currently support properties, "
-                    f"so {self}.{attr_name} could not be mocked."
-                ),
-            )
+            prop = self._properties.get(attr_name)
+            if not prop or not prop.fget:
+                # TODO: implement support for automatic mocking, like we do for
+                # MethodMock below
+                raise ValueError(
+                    f"Property: {self}.{attr_name} needs to be mocked before use",
+                )
+            return prop.fget(prop)
 
         if attr_name not in self._mocks:
             signature = inspect.signature(original_attr)
@@ -172,6 +199,37 @@ class SafeMock(Generic[T]):
             )
 
         return self._mocks[attr_name]
+
+    def __setattr__(self: SafeMock, attr_name: str, value: Any) -> None:
+        try:
+            spec_annotations = get_type_hints(self._spec)
+        except (KeyError, AttributeError):
+            spec_annotations = {}
+
+        # Check if there's an attribute already set or a property
+        try:
+            original_attr = self.get_original_attr(attr_name)
+        except AttributeError:
+            original_attr = None
+
+        attr_defined = original_attr or attr_name in spec_annotations
+        attrs_unknown = not original_attr and not spec_annotations
+
+        if isinstance(original_attr, property):
+            prop = self._properties.get(attr_name)
+            if not prop or not prop.fset:
+                raise ValueError(
+                    f"Property setter: {self}.{attr_name} needs to be stubbed"
+                    " before use"
+                )
+            prop.fset(prop, value)
+        elif attr_defined or attrs_unknown:
+            self.__dict__[attr_name] = value
+        else:
+            raise AttributeError(
+                f"Cannot set non-existent attribute: {self}.{attr_name} that does"
+                " not seem to exist on the original mocked class"
+            )
 
     def get_original_attr(self: SafeMock, attr_name: str) -> Any:
         try:

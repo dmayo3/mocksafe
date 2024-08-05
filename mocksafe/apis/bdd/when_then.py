@@ -320,4 +320,4 @@ class PropertyStubber:
                 ),
             )
 
-        setattr(type(self._mock_object), prop_name, value)
+        self._mock_object._properties[prop_name] = value
