@@ -25,7 +25,7 @@
     :target: https://github.com/dmayo3/mocksafe/blob/main/LICENSE
     :alt: MIT License
 
-MockSafe v0.6.0-alpha
+MockSafe v0.7.0-alpha
 ---------------------
 
 A mocking library developed to enable static and runtime type checking of your mocks to help keep them up-to-date with your production code.
