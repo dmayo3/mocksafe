@@ -29,7 +29,19 @@ classifiers = [
     "Framework :: Pytest",
     "Typing :: Typed",
 ]
-keywords = ["mock", "mocking", "typed", "typing", "typesafe", "testing", "tests", "mocks", "magicmock", "unittest", "stubbing"]
+keywords = [
+    "mock",
+    "mocking",
+    "typed",
+    "typing",
+    "typesafe",
+    "testing",
+    "tests",
+    "mocks",
+    "magicmock",
+    "unittest",
+    "stubbing",
+]
 dependencies = []
 
 [project.urls]
@@ -52,13 +64,6 @@ tag = true
 push = false
 
 [tool.bumpver.file_patterns]
-"pyproject.toml" = [
-    'current_version = "{version}"',
-    'version = "{version}"',
-]
-"mocksafe/__init__.py" = [
-    '__version__ = "{version}"',
-]
-"README.rst" = [
-    'MockSafe v{version}',
-]
+"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
+"mocksafe/__init__.py" = ['__version__ = "{version}"']
+"README.rst" = ['MockSafe v{version}']
