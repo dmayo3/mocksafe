@@ -100,7 +100,7 @@ class MockProperty(property, CallRecorder, Generic[T]):
         except IndexError:
             raise ValueError(
                 (
-                    f"Mocked property {self.name}() was not called {n+1} time(s). "
+                    f"Mocked property {self.name}() was not called {n + 1} time(s). "
                     f"The actual number of calls was {len(self.calls)}."
                 ),
             ) from None

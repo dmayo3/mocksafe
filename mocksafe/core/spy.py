@@ -77,7 +77,7 @@ class MethodSpy(CallRecorder, Generic[T]):
 
             raise ValueError(
                 (
-                    f"Mocked method {self._name}() was not called {n+1} time(s). "
+                    f"Mocked method {self._name}() was not called {n + 1} time(s). "
                     f"The actual number of calls was {len(self.calls)}."
                 ),
             )
