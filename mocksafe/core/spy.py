@@ -17,14 +17,14 @@ class CallRecorder(Protocol):
     """
 
     @property
-    def name(self: CallRecorder) -> MethodName:
+    def name(self) -> MethodName:
         ...
 
     @property
-    def calls(self: CallRecorder) -> list[Call]:
+    def calls(self) -> list[Call]:
         ...
 
-    def nth_call(self: CallRecorder, n: int) -> Call:
+    def nth_call(self, n: int) -> Call:
         ...
 
 

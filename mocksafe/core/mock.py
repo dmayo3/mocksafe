@@ -164,7 +164,7 @@ class SafeMock(Generic[T]):
     # This is a bit of a hack to fool isinstance checks.
     # Is there a better way?
     @property  # type: ignore
-    def __class__(self: SafeMock):
+    def __class__(self: SafeMock):  # type: ignore
         return self._original_class
 
     def __str__(self: SafeMock) -> str:
