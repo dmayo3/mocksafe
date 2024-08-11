@@ -6,7 +6,7 @@ from mocksafe.core.custom_types import MethodName, Call
 T = TypeVar("T")
 
 
-class MockProperty(Generic[T], property, CallRecorder):
+class MockProperty(property, CallRecorder, Generic[T]):
     """
     Used to mock a property on a mock object.
 
