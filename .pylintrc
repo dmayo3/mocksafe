@@ -99,6 +99,9 @@ disable=
     import-error,
     disallowed-name,
     broad-exception-caught,
+    # Pyright disagrees with these two rules
+    typevar-name-mismatch,
+    typevar-name-incorrect-variance,
 
 
 [REPORTS]

@@ -1,23 +1,27 @@
 from __future__ import annotations
 from inspect import Signature, isclass
-from typing import Generic, TypeVar, Optional, Union
-from collections.abc import Callable
+from typing import Generic, Protocol, TypeVar, Optional, Union
 from mocksafe.core.custom_types import MethodName, CallMatcher
 from mocksafe.core.call_type_validator import type_match
+from mocksafe.core.spy import Delegate
 
 
-T = TypeVar("T")
-ResultsProvider = Callable[..., T]
+T = TypeVar("T", covariant=True)
+
+
+class ResultsProvider(Protocol[T]):
+    def __call__(self, *args, **kwargs) -> T:
+        ...
 
 
 # Stub default values for these simple built-in types
 PRIMITIVES = [str, int, bool, float, dict, list, tuple, set]
 
 
-class MethodStub(Generic[T]):
+class MethodStub(Generic[T], Delegate[T]):
     def __init__(self: MethodStub, name: MethodName, result_type: type):
         self._name = name
-        self._stubs: list[tuple[CallMatcher, ResultsProvider]] = []
+        self._stubs: list[tuple[CallMatcher, ResultsProvider[T]]] = []
         self._result_type = result_type
 
     def __call__(self: MethodStub, *args, **kwargs) -> Optional[T]:
@@ -60,7 +64,7 @@ class MethodStub(Generic[T]):
         self.add_effect(matcher, CannedEffects(effects))
 
     def add_effect(
-        self: MethodStub, matcher: CallMatcher, effect: ResultsProvider
+        self: MethodStub, matcher: CallMatcher, effect: ResultsProvider[T]
     ) -> None:
         self._stubs.insert(0, (matcher, effect))
 
