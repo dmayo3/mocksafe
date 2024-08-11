@@ -3,8 +3,8 @@
     :alt: Github Actions Status
 .. image:: https://codecov.io/gh/dmayo3/mocksafe/branch/main/graph/badge.svg?token=S3JI6OOTGF 
     :target: https://codecov.io/gh/dmayo3/mocksafe
-.. image:: https://readthedocs.org/projects/mocksafe/badge/?version=stable
-    :target: https://mocksafe.readthedocs.io/en/stable/?badge=stable
+.. image:: https://readthedocs.org/projects/mocksafe/badge/?version=latest
+    :target: https://mocksafe.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 .. image:: https://badge.fury.io/py/mocksafe.svg
     :target: https://badge.fury.io/py/mocksafe
