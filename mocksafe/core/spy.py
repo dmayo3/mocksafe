@@ -1,12 +1,16 @@
 from __future__ import annotations
 from inspect import Signature
-from typing import Generic, TypeVar, Protocol, runtime_checkable
-from collections.abc import Callable
+from typing import Generic, Optional, TypeVar, Protocol, runtime_checkable
 from mocksafe.core.custom_types import MethodName, Call
 from mocksafe.core.call_type_validator import CallTypeValidator
 
 
-T = TypeVar("T")
+T = TypeVar("T", covariant=True)
+
+
+class Delegate(Protocol[T]):
+    def __call__(self, *args, **kwargs) -> Optional[T]:
+        ...
 
 
 @runtime_checkable
@@ -32,7 +36,7 @@ class MethodSpy(CallRecorder, Generic[T]):
     def __init__(
         self: MethodSpy,
         name: MethodName,
-        delegate: Callable[..., T],
+        delegate: Delegate,
         signature: Signature,
     ):
         self._name = name
@@ -40,7 +44,7 @@ class MethodSpy(CallRecorder, Generic[T]):
         self._calls: list[Call] = []
         self._signature = signature
 
-    def __call__(self: MethodSpy, *args, **kwargs) -> T:
+    def __call__(self: MethodSpy, *args, **kwargs) -> Optional[T]:
         validator = CallTypeValidator(
             self._name,
             self._signature.parameters,

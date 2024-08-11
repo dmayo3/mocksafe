@@ -1,9 +1,14 @@
 from __future__ import annotations
-from collections.abc import Callable
-from mocksafe.core.custom_types import Call
+from typing import Protocol
+from mocksafe.core.custom_types import Call, CallMatcher
 
 
-class AnyCallMatcher:
+class CallLambda(Protocol):
+    def __call__(self, *args, **kwargs) -> bool:
+        ...
+
+
+class AnyCallMatcher(CallMatcher):
     def __call__(self: AnyCallMatcher, _: Call) -> bool:
         return True
 
@@ -11,7 +16,7 @@ class AnyCallMatcher:
         return "*"
 
 
-class ExactCallMatcher:
+class ExactCallMatcher(CallMatcher):
     def __init__(self: ExactCallMatcher, exact: Call):
         self._exact = exact
 
@@ -26,8 +31,8 @@ class ExactCallMatcher:
         return f"call({call_sig})"
 
 
-class CustomCallMatcher:
-    def __init__(self: CustomCallMatcher, call_lambda: Callable[..., bool]):
+class CustomCallMatcher(CallMatcher):
+    def __init__(self: CustomCallMatcher, call_lambda: CallLambda):
         self._call_lambda = call_lambda
 
     def __call__(self: CustomCallMatcher, actual: Call) -> bool:
