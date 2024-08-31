@@ -2,7 +2,8 @@ from __future__ import annotations
 import builtins
 import contextlib
 from inspect import Parameter
-from collections.abc import Sequence, Mapping
+from collections.abc import Callable, Sequence, Mapping
+from numbers import Number
 from urllib.parse import urlencode
 from types import GenericAlias
 from typing import Union, Any, cast
@@ -128,12 +129,12 @@ def type_match(arg: Any, annotation: Any) -> bool:
         # Handle other generic types by checking just the base type
         # E.g. for dict[str, str] just check isinstance(arg, type(dict))
         generic_type = cast(GenericAlias, expected_type)
-        return isinstance(arg, generic_type.__origin__)
+        return _coercable_type_match(arg, generic_type.__origin__)
     except AttributeError:
         pass
 
     try:
-        return isinstance(arg, expected_type)
+        return _coercable_type_match(arg, expected_type)
     except TypeError as err:
         gh_issue_params = {
             "title": "Type Match Error",
@@ -196,3 +197,41 @@ def _is_union(t: type) -> bool:
 def _gh_raise_issue_url(gh_issue_params: dict[str, str]) -> str:
     gh_repo = "https://github.com/dmayo3/mocksafe"
     return f"{gh_repo}/issues/new?{urlencode(gh_issue_params)}"
+
+
+def _coercable_type_match(arg: Any, annotation: Any) -> bool:
+    """
+    Check if arg is an instance of annotation or can be coerced to it
+    without loss of precision.
+
+    Examples:
+        >>> _coercable_type_match(1, int)
+        True
+        >>> _coercable_type_match(1.0, int)
+        True
+        >>> _coercable_type_match(1, float)
+        True
+        >>> _coercable_type_match(1, bool)
+        False
+        >>> _coercable_type_match(1, str)
+        False
+        >>> _coercable_type_match("", bool)
+        False
+    """
+    # Exact match
+    if isinstance(arg, annotation):
+        return True
+
+    # Special case: don't coerce to bool
+    # Needed because issubclass(bool, Number) is True!
+    if annotation == bool:
+        return False
+
+    # Only coerce numbers that can be converted without loss of precision
+    if not isinstance(arg, Number):
+        return False
+    if not issubclass(annotation, Number) or not callable(annotation):
+        return False
+    # Numeric types should also be callable, e.g. int(1.0) -> 1
+    constructor = cast(Callable[[Number], Number], annotation)
+    return constructor(arg) == arg
