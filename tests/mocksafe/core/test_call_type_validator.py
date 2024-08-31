@@ -20,7 +20,11 @@ from fractions import Fraction
 
 import pytest
 
-from mocksafe.core.call_type_validator import CallTypeValidator
+from mocksafe.core.call_type_validator import (
+    CallTypeValidator,
+    type_match,
+    _coercable_type_match,
+)
 
 
 ANY_NAME = "any_name"
@@ -418,3 +422,44 @@ def test_validates_typed_var_kwargs():
     validator = CallTypeValidator(ANY_NAME, params, (), {"x": 1, "bad": "type"})
     with pytest.raises(TypeError):
         validator.validate()
+
+
+@pytest.mark.parametrize(
+    "arg,annotation,expect_match",
+    [
+        (1, int, True),
+        (1.0, int, True),
+        (1.0, float, True),
+        (1, float, True),
+        (1, Union[int, float], True),
+        (1.0, Union[int, float], True),
+        (1, bool, False),
+        (1, str, False),
+    ],
+)
+def test_type_match(arg: Any, annotation: Any, expect_match: bool):
+    assert type_match(arg, annotation) == expect_match
+
+
+@pytest.mark.parametrize(
+    "arg,annotation,expect_match",
+    [
+        (1, int, True),
+        (1.0, int, True),
+        (1, float, True),
+        (1, bool, False),
+        ([], bool, False),
+        ("", bool, False),
+        ("", bool, False),
+        (1, str, False),
+        ("", bool, False),
+        ("", str, True),
+        ([], tuple, False),
+        (tuple(), tuple, True),
+        (True, bool, True),
+        (False, bool, True),
+        (b"hello", bytes, True),
+    ],
+)
+def test_coercable_type_match(arg: Any, annotation: Any, expect_match: bool):
+    assert _coercable_type_match(arg, annotation) == expect_match
