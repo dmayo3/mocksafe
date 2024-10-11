@@ -136,6 +136,13 @@ def type_match(arg: Any, annotation: Any) -> bool:
     try:
         return _coercable_type_match(arg, expected_type)
     except TypeError as err:
+        if "@runtime_checkable" in str(err):
+            raise TypeError(
+                f"Could not validate that argument '{arg}' ({type(arg)}) is compatible"
+                f" with the expected Protocol type: {expected_type}. The Protocol type"
+                " must be annotated with @runtime_checkable."
+            ) from err
+
         gh_issue_params = {
             "title": "Type Match Error",
             "labels": "bug",
