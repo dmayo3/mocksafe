@@ -7,6 +7,7 @@ from typing import (
     Mapping,
     ContextManager,
     Callable,
+    Protocol,
     Sequence,
     Union,
     Optional,
@@ -463,3 +464,20 @@ def test_type_match(arg: Any, annotation: Any, expect_match: bool):
 )
 def test_coercable_type_match(arg: Any, annotation: Any, expect_match: bool):
     assert _coercable_type_match(arg, annotation) == expect_match
+
+
+def test_protocol_type_match_err():
+    class ProtoType(Protocol):
+        def do_the_thing(self) -> bool:
+            ...
+
+    class Implementation(ProtoType):
+        def do_the_thing(self) -> bool:
+            return True
+
+    with pytest.raises(TypeError) as excinfo:
+        type_match(Implementation(), ProtoType)
+
+    assert "The Protocol type must be annotated with @runtime_checkable." in str(
+        excinfo.value
+    )
