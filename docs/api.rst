@@ -5,6 +5,7 @@ API
    :toctree: generated
 
    mocksafe
+   mocksafe.plugin
    mocksafe.mock
    mocksafe.mock_module
    mocksafe.mock_reset

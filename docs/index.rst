@@ -57,4 +57,5 @@ Contents
    stubbing
    verification
    typesafety
+   plugin
    api
