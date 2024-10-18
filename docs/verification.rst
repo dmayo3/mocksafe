@@ -128,3 +128,46 @@ Example:
     >>> kwargs
     {'interrogator': 'Cardinal Biggles'}
     >>> assert kwargs.get("interrogator") == "Cardinal Biggles"
+
+
+Capture Details for All Calls
+-----------------------------
+
+If you prefer to capture the details of all calls that were made for deeper
+inspection you can use the ``all_calls`` attribute of the spy object using
+expressions such as::
+
+    <var> = spy(<mock>).all_calls
+
+Example:
+
+.. doctest::
+
+    >>> class SpanishInquisition:
+    ...     def surprise(self, location: str, interrogator: str) -> str:
+    ...         raise NotImplementedError()
+
+    >>> inquisitors = mock(SpanishInquisition)
+
+    >>> when(inquisitors.surprise).any_call().then(
+    ...     lambda location, interrogator: (
+    ...         f"The Spanish Inquisition surprises {location} with {interrogator}!"
+    ...     )
+    ... )
+
+    >>> inquisitors.surprise("the village", interrogator="Cardinal Biggles")
+    'The Spanish Inquisition surprises the village with Cardinal Biggles!'
+
+    >>> inquisitors.surprise("the castle", interrogator="Cardinal Fang")
+    'The Spanish Inquisition surprises the castle with Cardinal Fang!'
+
+    >>> inquisitors.surprise("the town square", interrogator="Cardinal Ximinez")
+    'The Spanish Inquisition surprises the town square with Cardinal Ximinez!'
+
+    >>> all_calls = spy(inquisitors.surprise).all_calls
+
+    >>> locations = [call.args[0] for call in all_calls]
+    >>> interrogators = [call.kwargs.get("interrogator") for call in all_calls]
+
+    >>> assert locations == ["the village", "the castle", "the town square"]
+    >>> assert interrogators == ["Cardinal Biggles", "Cardinal Fang", "Cardinal Ximinez"]

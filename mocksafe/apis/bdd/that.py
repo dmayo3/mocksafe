@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union, Any
+from typing import NamedTuple, Union, Any
 from mocksafe.core.custom_types import Call
 from mocksafe.core.spy import CallRecorder
 
@@ -141,3 +141,32 @@ class MockCalls:
         if kwargs:
             return call
         return args
+
+    @property
+    def all_calls(self: MockCalls) -> list[NamedCall]:
+        """
+        Returns a list of all calls made to the spied/mocked method.
+
+        Each call is represented as a NamedCall object.
+
+        :rtype: list[NamedCall]
+
+        :Example:
+            >>> when(mock_random.randint).any_call().then_return(5, 13)
+            >>> mock_random.randint(a=1, b=10)
+            5
+            >>> mock_random.randint(10, 20)
+            13
+            >>> spy(mock_random.randint).all_calls
+            [NamedCall(args=(), kwargs={'a': 1, 'b': 10}), NamedCall(args=...)]
+        """
+        return [NamedCall(args, kwargs) for args, kwargs in self._call_recorder.calls]
+
+
+class NamedCall(NamedTuple):
+    """
+    Details of a call made to a mocked/spied method.
+    """
+
+    args: tuple
+    kwargs: dict[str, Any]
