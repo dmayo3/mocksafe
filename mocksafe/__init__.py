@@ -31,4 +31,4 @@ from mocksafe.apis.bdd import (
 )
 
 
-__version__ = "0.8.1-alpha"
+__version__ = "0.9.0-beta"
