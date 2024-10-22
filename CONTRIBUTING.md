@@ -15,7 +15,7 @@ Thank you for considering contributing to MockSafe! We welcome contributions of 
 
 ## Code of Conduct
 
-By participating in this project, you are expected to uphold the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). Please ensure your behavior aligns with our pledge for a welcoming and inclusive community.
+By participating in this project, you are expected to uphold the [Contributor Covenant Code of Conduct](https://github.com/dmayo3/mocksafe/blob/main/CODE_OF_CONDUCT.md). Please ensure your behavior aligns with our pledge for a welcoming and inclusive community.
 
 ## How to Contribute
 
@@ -81,9 +81,18 @@ To set up the development environment, follow these steps:
    ```
 
 2. Install dependencies:
+   Since this project uses pyproject.toml, you can install the dependencies using the following commands:
+
+- For a regular installation:
 
    ```bash
-   pip install -r requirements.txt
+   pip install .
+   ```
+
+- For an editable installation (recommended for development):
+
+   ```bash
+   pip install -e .
    ```
 
 3. (Optional) Set up a virtual environment:
@@ -92,6 +101,71 @@ To set up the development environment, follow these steps:
    python -m venv venv
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
    ```
+
+4. Alternatively, you can use tox to manage your development environment and run tests. Install tox and run it in the project directory:
+
+    ```bash
+   pip install tox
+   tox
+   ```
+
+This will automatically set up virtual environments and install dependencies for testing.
+
+## Using Tox for Testing and Other Tasks
+
+In addition to installing dependencies, tox can be used to manage various tasks like running tests, formatting code, linting, and building the documentation. This section is optional for contributors, but highly recommended for a streamlined workflow.
+
+### Setting up Tox
+
+1. First, ensure that tox is installed by running:
+
+   ```bash
+   pip install tox
+   ```
+
+2. Once tox is installed, you can run various tasks by executing tox in the project directory.
+
+### Running Tests
+
+- To run the test suite using tox, simply execute:
+
+   ```bash
+   tox
+   ```
+
+This will run the tests across the configured Python environments and ensure your changes don’t break existing functionality.
+
+### Linting and Formatting
+
+- tox can also be used to ensure that the code follows proper linting and formatting standards. To run linting and formatting checks, use:
+
+   ```bash
+   tox -e lint
+   ```
+
+This will run tools like flake8 and black (depending on your tox.ini setup) to check for any issues in the code.
+
+### Building Documentation
+
+- To build the Sphinx documentation using tox, run:
+
+   ```bash
+   tox -e docs
+   ```
+
+This will generate the documentation in HTML format and catch any errors during the build process.
+
+### Running Individual Environments
+
+- If you only want to run a specific environment, such as tests for Python 3.11 or formatting, you can specify the environment like this:
+
+   ```bash
+   tox -e py311   # Runs tests for Python 3.11
+   tox -e format  # Runs code formatting
+   tox -e docs    # Builds the documentation
+   ```
+
+This flexibility allows you to only run the environments you need during development.
 
 ## Coding Standards
 
@@ -102,6 +176,6 @@ We follow PEP 8 for Python coding standards. Ensure your code is well-documented
 
 ## License
 
-By contributing to MockSafe, you agree that your contributions will be licensed under the MIT License. For more details, please see the [LICENSE] file.
+By contributing to MockSafe, you agree that your contributions will be licensed under the MIT License. For more details, please see the [LICENSE](https://github.com/dmayo3/mocksafe/blob/main/LICENSE) file.
 
 Thank you for contributing to MockSafe! We appreciate your help in making this library better for everyone.
