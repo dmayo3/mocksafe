@@ -13,11 +13,11 @@ T = TypeVar("T")
 ANY_CALL: CallMatcher = AnyCallMatcher()
 
 
-def when(mock_method: Callable[..., T]) -> WhenStubber[T]:
+def when(mock_callable: Callable[..., T]) -> WhenStubber[T]:
     """
-    Stub a mocked method.
+    Stub a mocked method / Callable.
 
-    :param mock_method: a method on a mock object that returns generic type T
+    :param mock_callable: a mocked method / Callable that returns generic type T
     :rtype: WhenStubber[T]
 
     :Example:
@@ -27,11 +27,17 @@ def when(mock_method: Callable[..., T]) -> WhenStubber[T]:
     :Example:
         >>> when(mock_random.random).any_call().then_return(0.31)
     """
-    if not isinstance(mock_method, MethodMock):
+    if isinstance(mock_callable, SafeMock):
+        # Get the mocked __call__ method so that it is an instance
+        # of MethodMock instead of SafeMock.
+        mock_callable = mock_callable.get_mocked_attr("__call__")
+
+    if not isinstance(mock_callable, MethodMock):
         raise ValueError(
-            f"Not a SafeMocked method: {mock_method} ({type(mock_method)})"
+            f"Not a SafeMocked method: {mock_callable} ({type(mock_callable)})"
         )
-    return WhenStubber(mock_method)
+
+    return WhenStubber(mock_callable)
 
 
 def stub(mock_object: Any) -> PropertyStubber:
