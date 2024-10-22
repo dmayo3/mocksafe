@@ -179,7 +179,18 @@ class SafeMock(Generic[T]):
 
         return f"SafeMock({', '.join(constructor_args)})"
 
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        try:
+            mocked_callable_method = self.get_mocked_attr("__call__")
+        except AttributeError as err:
+            raise TypeError(f"{self} object is not callable") from err
+
+        return mocked_callable_method(*args, **kwds)
+
     def __getattr__(self: SafeMock, attr_name: str) -> MethodMock | Any:
+        return self.get_mocked_attr(attr_name)
+
+    def get_mocked_attr(self: SafeMock, attr_name: str) -> MethodMock | Any:
         original_attr = self.get_original_attr(attr_name)
 
         if isinstance(original_attr, property):
