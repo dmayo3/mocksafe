@@ -192,3 +192,31 @@ You can also create an ad hoc type as a mockable specification:
 
     >>> mock_factorial(3)
     6
+
+
+Mocking Callable Objects
+------------------------
+
+Callable objects are similar to functions.
+
+Here is how to mock a Callable object:
+
+.. doctest::
+
+        >>> from collections.abc import Callable
+        >>> from mocksafe import mock, when
+
+        >>> # Here we define the (upper) class TwitOfTheYear to be mocked...
+        ... class TwitOfTheYear:
+        ...     def __call__(self, name: str) -> str:
+        ...         return f"{name} is the Upper Class Twit of the Year!"
+
+        >>> mock_twit: Callable[[str], str] = mock(TwitOfTheYear)
+        >>> (
+        ...     when(mock_twit)
+        ...         .called_with(mock_twit("Gervaise Brook-Hampster"))
+        ...         .then_return("Gervaise Brook-Hampster is the Upper Class Twit of the Year!")
+        ... )
+
+        >>> mock_twit("Gervaise Brook-Hampster")
+        'Gervaise Brook-Hampster is the Upper Class Twit of the Year!'

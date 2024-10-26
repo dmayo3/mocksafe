@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import random
 from types import ModuleType
 from typing import Optional
@@ -256,3 +257,15 @@ def test_mock_random_module():
 
     with pytest.raises(AttributeError):
         mock_random.foobar()
+
+
+def test_mock_callable():
+    class Adder:
+        def __call__(self, a: int, b: int) -> int:
+            return a + b
+
+    mock_adder: Callable[[int, int], int] = mock(Adder)
+
+    when(mock_adder).called_with(mock_adder(1, 2)).then_return(3)
+
+    assert mock_adder(1, 2) == 3
