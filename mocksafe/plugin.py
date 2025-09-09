@@ -8,6 +8,7 @@ is installed, which should be >= 6.2.0.
 When installed the plugin exposes a `patch` fixture that implements
 the `Patcher` Protocol defined in this module.
 """
+
 import logging
 from typing import Protocol, TypeVar
 from mocksafe import mock

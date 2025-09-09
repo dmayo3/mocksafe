@@ -2,7 +2,6 @@ from __future__ import annotations
 from mocksafe.core.spy import CallRecorder, Generic, TypeVar
 from mocksafe.core.custom_types import MethodName, Call
 
-
 T = TypeVar("T")
 
 

@@ -27,20 +27,20 @@ jobs:
           - "3.12"
           - "3.13"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install tox
         run: |
-          pip install "tox>=4.5,<4.6"
+          pip install "tox>=4.5"
       - name: Run tox
         run: |
           tox --colored no --quiet
       - name: Upload coverage to Codecov
         if: ${{ matrix.python-version == '3.9' }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           verbose: true
         env:

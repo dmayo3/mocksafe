@@ -50,14 +50,15 @@ Documentation = "https://mocksafe.readthedocs.io/en/0.6/"
 Source = "https://github.com/dmayo3/mocksafe"
 
 [project.optional-dependencies]
-pytest = ["pytest >= 6.2.0"]
-docs = ["sphinx-rtd-theme >= 1.2.0", "pytest >= 6.2.0"]
+pytest = ["pytest >= 8.4.0"]
+docs = ["sphinx-rtd-theme >= 1.5.0", "pytest >= 8.4.0"]
 dev = [
-    "pre-commit >= 3.0.0",
-    "pytest >= 6.2.0",
-    "black == 23.3.0",
-    "pylint >= 2.17.0",
-    "flake8",
+    "pre-commit >= 4.0.0",
+    "pytest >= 8.4.0",
+    "pytest-sugar >= 1.0.0",
+    "black >= 25.1.0",
+    "pylint >= 3.3.0",
+    "flake8 >= 7.1.0",
     "flake8-rst-docstrings",
     "flake8-sphinx-links",
     "flake8-bugbear",
@@ -67,7 +68,8 @@ dev = [
     "flake8-warnings",
     "flake8-eradicate",
     "pep8-naming",
-    "mypy >= 1.2.0",
+    "mypy >= 1.17.0",
+    "coverage >= 7.10.0",
 ]
 
 [build-system]

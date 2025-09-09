@@ -9,7 +9,6 @@ from mocksafe.core.spy import MethodSpy, CallRecorder
 from mocksafe.core.stub import MethodStub, ResultsProvider
 from mocksafe.core.call_matchers import ExactCallMatcher
 
-
 T = TypeVar("T")
 V = TypeVar("V")
 M = TypeVar("M", bound=ModuleType)

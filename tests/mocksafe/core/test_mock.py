@@ -7,8 +7,7 @@ from mocksafe.core.mock import SafeMock, MethodMock, mock_reset
 class TestClass:
     some_attribute: int = 123
 
-    def foo(self: TestClass):
-        ...
+    def foo(self: TestClass): ...
 
     @property
     def bar(self: TestClass) -> int:

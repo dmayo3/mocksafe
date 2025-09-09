@@ -5,13 +5,11 @@ from mocksafe.core.custom_types import MethodName, CallMatcher
 from mocksafe.core.call_type_validator import type_match
 from mocksafe.core.spy import Delegate
 
-
 T = TypeVar("T", covariant=True)
 
 
 class ResultsProvider(Protocol[T]):
-    def __call__(self, *args, **kwargs) -> T:
-        ...
+    def __call__(self, *args, **kwargs) -> T: ...
 
 
 # Stub default values for these simple built-in types
