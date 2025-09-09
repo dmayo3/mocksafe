@@ -56,7 +56,7 @@ jobs:
     needs: dist
     steps:
       - name: Download dist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist
@@ -75,7 +75,7 @@ jobs:
       url: https://test.pypi.org/p/mocksafe
     steps:
       - name: Download dist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist
@@ -95,7 +95,7 @@ jobs:
       url: https://pypi.org/p/mocksafe
     steps:
       - name: Download dist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist
