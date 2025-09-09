@@ -5,24 +5,24 @@ from mocksafe.core.custom_types import MethodName, CallMatcher
 from mocksafe.core.call_type_validator import type_match
 from mocksafe.core.spy import Delegate
 
-T = TypeVar("T", covariant=True)
+T_co = TypeVar("T_co", covariant=True)
 
 
-class ResultsProvider(Protocol[T]):
-    def __call__(self, *args, **kwargs) -> T: ...
+class ResultsProvider(Protocol[T_co]):
+    def __call__(self, *args, **kwargs) -> T_co: ...
 
 
 # Stub default values for these simple built-in types
 PRIMITIVES = [str, int, bool, float, dict, list, tuple, set]
 
 
-class MethodStub(Generic[T], Delegate[T]):
+class MethodStub(Generic[T_co], Delegate[T_co]):
     def __init__(self: MethodStub, name: MethodName, result_type: type):
         self._name = name
-        self._stubs: list[tuple[CallMatcher, ResultsProvider[T]]] = []
+        self._stubs: list[tuple[CallMatcher, ResultsProvider[T_co]]] = []
         self._result_type = result_type
 
-    def __call__(self: MethodStub, *args, **kwargs) -> Optional[T]:
+    def __call__(self: MethodStub, *args, **kwargs) -> Optional[T_co]:
         call = (tuple(args), kwargs)
         for matcher, results in self._stubs:
             if matcher(call):
@@ -31,7 +31,7 @@ class MethodStub(Generic[T], Delegate[T]):
         # No default return value has been stubbed, try to determine
         # something sensible to return
 
-        default_value: Optional[T]
+        default_value: Optional[T_co]
         result_type: type = self._result_type
 
         primitive_result_type = isclass(result_type) and any(
@@ -56,18 +56,20 @@ class MethodStub(Generic[T], Delegate[T]):
         return self._name
 
     def add(
-        self: MethodStub, matcher: CallMatcher, effects: list[Union[T, BaseException]]
+        self: MethodStub,
+        matcher: CallMatcher,
+        effects: list[Union[T_co, BaseException]],
     ) -> None:
         self._validate_effects(effects)
         self.add_effect(matcher, CannedEffects(effects))
 
     def add_effect(
-        self: MethodStub, matcher: CallMatcher, effect: ResultsProvider[T]
+        self: MethodStub, matcher: CallMatcher, effect: ResultsProvider[T_co]
     ) -> None:
         self._stubs.insert(0, (matcher, effect))
 
     def _validate_effects(
-        self: MethodStub, effects: list[Union[T, BaseException]]
+        self: MethodStub, effects: list[Union[T_co, BaseException]]
     ) -> None:
         # Runtime check in case static type checking allows an incompatible type
         # to slip through
@@ -79,19 +81,17 @@ class MethodStub(Generic[T], Delegate[T]):
                 continue
             if not type_match(e, self._result_type):
                 raise TypeError(
-                    (
-                        f"Cannot use stub result {e} ({type(e)}) with the mocked method"
-                        f" {self._name}(), the expected return type is:"
-                        f" {self._result_type}."
-                    ),
+                    f"Cannot use stub result {e} ({type(e)}) with the mocked method"
+                    f" {self._name}(), the expected return type is:"
+                    f" {self._result_type}.",
                 )
 
 
-class CannedEffects(Generic[T]):
-    def __init__(self: CannedEffects, effects: list[T]):
+class CannedEffects(Generic[T_co]):
+    def __init__(self: CannedEffects, effects: list[T_co]):
         self._effects = effects
 
-    def __call__(self: CannedEffects, *args, **kwargs) -> T:
+    def __call__(self: CannedEffects, *args, **kwargs) -> T_co:
         if len(self._effects) == 1:
             effect = self._effects[0]
         else:
