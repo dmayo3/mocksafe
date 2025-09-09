@@ -12,6 +12,7 @@ See:
  - :meth:`mocksafe.that`
  - :meth:`mocksafe.spy`
 """
+
 from mocksafe.core import (
     MockProperty,
     mock,
@@ -29,6 +30,5 @@ from mocksafe.apis.bdd import (
     that,
     spy,
 )
-
 
 __version__ = "0.9.0-beta"

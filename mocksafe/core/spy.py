@@ -4,13 +4,11 @@ from typing import Generic, Optional, TypeVar, Protocol, runtime_checkable
 from mocksafe.core.custom_types import MethodName, Call
 from mocksafe.core.call_type_validator import CallTypeValidator
 
-
 T = TypeVar("T", covariant=True)
 
 
 class Delegate(Protocol[T]):
-    def __call__(self, *args, **kwargs) -> Optional[T]:
-        ...
+    def __call__(self, *args, **kwargs) -> Optional[T]: ...
 
 
 @runtime_checkable
@@ -21,15 +19,12 @@ class CallRecorder(Protocol):
     """
 
     @property
-    def name(self) -> MethodName:
-        ...
+    def name(self) -> MethodName: ...
 
     @property
-    def calls(self) -> list[Call]:
-        ...
+    def calls(self) -> list[Call]: ...
 
-    def nth_call(self, n: int) -> Call:
-        ...
+    def nth_call(self, n: int) -> Call: ...
 
 
 class MethodSpy(CallRecorder, Generic[T]):

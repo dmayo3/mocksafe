@@ -27,7 +27,6 @@ from mocksafe.core.call_type_validator import (
     _coercable_type_match,
 )
 
-
 ANY_NAME = "any_name"
 ANY_PARAMETER = Parameter(ANY_NAME, Parameter.POSITIONAL_OR_KEYWORD)
 
@@ -35,8 +34,7 @@ NO_PARAMS: Mapping[str, Parameter] = {}
 SELF_PARAM: Mapping[str, Parameter] = {"self": ANY_PARAMETER}
 
 
-async def async_function():
-    ...
+async def async_function(): ...
 
 
 def test_validate_no_params():
@@ -468,8 +466,7 @@ def test_coercable_type_match(arg: Any, annotation: Any, expect_match: bool):
 
 def test_protocol_type_match_err():
     class ProtoType(Protocol):
-        def do_the_thing(self) -> bool:
-            ...
+        def do_the_thing(self) -> bool: ...
 
     class Implementation(ProtoType):
         def do_the_thing(self) -> bool:

@@ -4,8 +4,7 @@ from mocksafe.core.custom_types import Call, CallMatcher
 
 
 class CallLambda(Protocol):
-    def __call__(self, *args, **kwargs) -> bool:
-        ...
+    def __call__(self, *args, **kwargs) -> bool: ...
 
 
 class AnyCallMatcher(CallMatcher):

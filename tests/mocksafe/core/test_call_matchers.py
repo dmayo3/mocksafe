@@ -5,7 +5,6 @@ from mocksafe.core.call_matchers import (
 )
 from mocksafe.core.custom_types import Call
 
-
 ANY_CALL: Call = ((), {})
 
 

@@ -8,7 +8,6 @@ from mocksafe.core.mock import SafeMock, MethodMock, ResultsProvider
 from mocksafe.core.call_type_validator import type_match
 from mocksafe.core.call_matchers import AnyCallMatcher, CustomCallMatcher
 
-
 T = TypeVar("T")
 ANY_CALL: CallMatcher = AnyCallMatcher()
 

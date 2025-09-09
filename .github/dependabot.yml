@@ -1,0 +1,56 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "dmayo3"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      # Group minor and patch updates for dev dependencies
+      dev-dependencies:
+        patterns:
+          - "black"
+          - "pylint"
+          - "flake8*"
+          - "mypy"
+          - "pre-commit"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group testing dependencies
+      test-dependencies:
+        patterns:
+          - "pytest*"
+          - "coverage"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group documentation dependencies
+      docs-dependencies:
+        patterns:
+          - "sphinx*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "dmayo3"
+    commit-message:
+      prefix: "ci"
+      include: "scope"

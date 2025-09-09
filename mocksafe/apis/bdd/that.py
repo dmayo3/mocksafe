@@ -3,7 +3,6 @@ from typing import NamedTuple, Union, Any
 from mocksafe.core.custom_types import Call
 from mocksafe.core.spy import CallRecorder
 
-
 Args = tuple
 
 
