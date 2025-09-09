@@ -1,0 +1,56 @@
+# Pre-commit hooks configuration
+# See https://pre-commit.com for more information
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        exclude: '^\.ropeproject/.*'
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: debug-statements
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        args: [--preview]
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args:
+          - --max-line-length=88
+          - --ignore=RST304,ANN002,ANN003,ANN101,ANN204,ANN401,N808
+          - --per-file-ignores=*/__init__.py:F401 tests/**.py:S101,ANN101,ANN201,SIM907,B033
+        additional_dependencies:
+          - flake8-rst-docstrings
+          - flake8-sphinx-links
+          - flake8-bugbear
+          - flake8-annotations
+          - flake8-bandit
+          - flake8-simplify
+          - flake8-warnings
+          - flake8-eradicate
+          - pep8-naming
+        exclude: |
+          (?x)^(
+              docs/conf\.py
+          )$
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        args: [--check-untyped-defs, --ignore-missing-imports]
+        additional_dependencies:
+          - pytest>=7
+        exclude: |
+          (?x)^(
+              docs/.*\.py|
+              setup\.py
+          )$

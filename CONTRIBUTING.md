@@ -102,7 +102,19 @@ To set up the development environment, follow these steps:
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
    ```
 
-4. Alternatively, you can use tox to manage your development environment and run tests. Install tox and run it in the project directory:
+4. Install development dependencies (optional but recommended):
+
+   ```bash
+   pip install -e .[dev]
+   ```
+
+5. Set up pre-commit hooks (optional but recommended):
+
+   ```bash
+   pre-commit install
+   ```
+
+6. Alternatively, you can use tox to manage your development environment and run tests. Install tox and run it in the project directory:
 
     ```bash
    pip install tox
@@ -110,6 +122,60 @@ To set up the development environment, follow these steps:
    ```
 
 This will automatically set up virtual environments and install dependencies for testing.
+
+## Pre-commit Hooks
+
+This project uses pre-commit hooks to maintain code quality and consistency. The hooks automatically run code formatting, linting, and type checking on your changes before you commit them.
+
+### Setting up Pre-commit Hooks
+
+1. Install the development dependencies:
+
+   ```bash
+   pip install -e .[dev]
+   ```
+
+2. Install the pre-commit hooks:
+
+   ```bash
+   pre-commit install
+   ```
+
+### What the Hooks Do
+
+The pre-commit hooks will automatically:
+
+- Remove trailing whitespace
+- Ensure files end with a newline
+- Check YAML and TOML syntax
+- Format code with Black
+- Run flake8 linting (with project-specific configuration)
+- Run mypy type checking
+- Check for common issues like merge conflicts and debug statements
+
+### Running Hooks Manually
+
+You can run the pre-commit hooks manually on all files:
+
+```bash
+pre-commit run --all-files
+```
+
+Or run them on specific files:
+
+```bash
+pre-commit run --files path/to/file.py
+```
+
+### Bypassing Hooks (Not Recommended)
+
+If you need to bypass the hooks for a specific commit (not recommended), you can use:
+
+```bash
+git commit --no-verify
+```
+
+However, please ensure your code meets the project standards before submitting a pull request.
 
 ## Using Tox for Testing and Other Tasks
 
@@ -169,10 +235,21 @@ This flexibility allows you to only run the environments you need during develop
 
 ## Coding Standards
 
-We follow PEP 8 for Python coding standards. Ensure your code is well-documented and includes relevant tests.
+We follow PEP 8 for Python coding standards. The project uses automated tools to maintain code quality:
+
+- **Black**: Automatic code formatting
+- **flake8**: Code linting and style checking
+- **mypy**: Static type checking
+- **Pre-commit hooks**: Automated quality checks before commits
+
+### Code Quality Requirements
 
 - Write unit tests for your code
 - Run tests using pytest before submitting your pull request
+- Ensure pre-commit hooks pass (they run automatically if installed)
+- Follow existing code patterns and naming conventions
+- Add type hints where appropriate
+- Write clear docstrings for public APIs
 
 ## License
 
