@@ -1,7 +1,7 @@
 .. image:: https://github.com/dmayo3/mocksafe/actions/workflows/mocksafe.yml/badge.svg
     :target: https://github.com/dmayo3/mocksafe/actions/workflows/mocksafe.yml?query=branch%3Amain
     :alt: Github Actions Status
-.. image:: https://codecov.io/gh/dmayo3/mocksafe/branch/main/graph/badge.svg?token=S3JI6OOTGF 
+.. image:: https://codecov.io/gh/dmayo3/mocksafe/branch/main/graph/badge.svg?token=S3JI6OOTGF
     :target: https://codecov.io/gh/dmayo3/mocksafe
 .. image:: https://readthedocs.org/projects/mocksafe/badge/?version=latest
     :target: https://mocksafe.readthedocs.io/en/latest/?badge=latest
