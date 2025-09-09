@@ -4,11 +4,11 @@ from typing import Generic, Optional, TypeVar, Protocol, runtime_checkable
 from mocksafe.core.custom_types import MethodName, Call
 from mocksafe.core.call_type_validator import CallTypeValidator
 
-T = TypeVar("T", covariant=True)
+T_co = TypeVar("T_co", covariant=True)
 
 
-class Delegate(Protocol[T]):
-    def __call__(self, *args, **kwargs) -> Optional[T]: ...
+class Delegate(Protocol[T_co]):
+    def __call__(self, *args, **kwargs) -> Optional[T_co]: ...
 
 
 @runtime_checkable
@@ -27,7 +27,7 @@ class CallRecorder(Protocol):
     def nth_call(self, n: int) -> Call: ...
 
 
-class MethodSpy(CallRecorder, Generic[T]):
+class MethodSpy(CallRecorder, Generic[T_co]):
     def __init__(
         self: MethodSpy,
         name: MethodName,
@@ -39,7 +39,7 @@ class MethodSpy(CallRecorder, Generic[T]):
         self._calls: list[Call] = []
         self._signature = signature
 
-    def __call__(self: MethodSpy, *args, **kwargs) -> Optional[T]:
+    def __call__(self: MethodSpy, *args, **kwargs) -> Optional[T_co]:
         validator = CallTypeValidator(
             self._name,
             self._signature.parameters,
