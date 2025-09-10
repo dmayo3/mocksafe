@@ -32,3 +32,14 @@ from mocksafe.apis.bdd import (
 )
 
 __version__ = "0.9.0-beta"
+
+__all__ = [
+    "MockProperty",
+    "mock",
+    "mock_module",
+    "mock_reset",
+    "when",
+    "stub",
+    "that",
+    "spy",
+]
