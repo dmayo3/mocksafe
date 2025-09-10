@@ -20,6 +20,11 @@ from mocksafe.core import (
     mock_reset,
 )
 from mocksafe.apis.bdd import (
+    WhenStubber,
+    MatchCallStubber,
+    LastCallStubber,
+    PropertyStubber,
+    MockCalls,
     when,
     stub,
     that,
