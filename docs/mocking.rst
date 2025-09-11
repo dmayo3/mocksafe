@@ -147,6 +147,42 @@ For more information see :class:`mocksafe.MockProperty` and
 :meth:`mocksafe.stub`.
 
 
+Mocking Class Methods
+---------------------
+
+Class methods work the same as instance methods - use the standard API
+for stubbing and verification.
+
+.. doctest::
+
+    >>> from mocksafe import mock, when, that
+
+    >>> class DatabaseConnection:
+    ...     def __init__(self, host: str):
+    ...         self.host = host
+    ...
+    ...     @classmethod
+    ...     def from_config(cls, config_path: str):
+    ...         # In real code, this would read the config file
+    ...         return cls("localhost")
+
+    >>> mock_db: DatabaseConnection = mock(DatabaseConnection)
+
+    >>> # Create a mocked instance to return
+    >>> mock_connection = mock(DatabaseConnection)
+    >>> mock_connection.host = "test-host"
+
+    >>> when(mock_db.from_config).called_with(
+    ...     mock_db.from_config("/test/config.json")
+    ... ).then_return(mock_connection)
+
+    >>> result = mock_db.from_config("/test/config.json")
+    >>> result.host
+    'test-host'
+
+    >>> assert that(mock_db.from_config).was_called
+
+
 Mocking Functions
 -----------------
 
