@@ -4,6 +4,8 @@ This test verifies that custom side effects for class methods receive
 the correct 'cls' parameter, focusing on externally visible behavior.
 """
 
+from __future__ import annotations
+
 from mocksafe import mock, when
 
 
@@ -11,17 +13,17 @@ class ExampleService:
     """Example service with class methods that use the cls parameter."""
 
     @classmethod
-    def get_service_name(cls: type["ExampleService"]) -> str:
+    def get_service_name(cls: type[ExampleService]) -> str:
         """Returns the class name - uses cls parameter."""
         return cls.__name__
 
     @classmethod
-    def create_with_prefix(cls: type["ExampleService"], prefix: str) -> str:
+    def create_with_prefix(cls: type[ExampleService], prefix: str) -> str:
         """Creates a string using both cls and the argument."""
         return f"{prefix}-{cls.__name__}"
 
     @classmethod
-    def factory_method(cls: type["ExampleService"], config: str) -> "ExampleService":
+    def factory_method(cls: type[ExampleService], config: str) -> ExampleService:
         """Factory method that would typically return an instance."""
         instance = cls()
         instance.config = config
