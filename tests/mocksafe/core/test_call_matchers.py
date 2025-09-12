@@ -37,6 +37,4 @@ def test_custom_call_matcher():
     assert matcher(call_maker(2)) is True
     assert matcher(call_maker(3)) is False
 
-    assert str(matcher).startswith(
-        "<function test_custom_call_matcher.<locals>.<lambda>"
-    )
+    assert str(matcher).startswith("<function test_custom_call_matcher.<locals>.<lambda>")

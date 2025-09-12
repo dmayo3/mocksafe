@@ -202,11 +202,7 @@ def test_validates_var_kwargs():
     ],
 )
 def test_validates_standard_types(arg_value: Any, param_type: Any):
-    params = {
-        ANY_NAME: Parameter(
-            ANY_NAME, Parameter.POSITIONAL_OR_KEYWORD, annotation=param_type
-        )
-    }
+    params = {ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_OR_KEYWORD, annotation=param_type)}
 
     validator = CallTypeValidator(ANY_NAME, params, (arg_value,), {})
     validator.validate()
@@ -243,9 +239,7 @@ def test_validates_standard_types(arg_value: Any, param_type: Any):
     ],
 )
 def test_validates_union_types(arg_value: Any, param_type: Any):
-    params = {
-        ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=param_type)
-    }
+    params = {ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=param_type)}
 
     validator = CallTypeValidator(ANY_NAME, params, (arg_value,), {})
     validator.validate()
@@ -259,9 +253,7 @@ def test_validates_union_types(arg_value: Any, param_type: Any):
 
 def test_validates_class_type():
     # Validate with collections.abc.Sized, a really simple (abstract) class type
-    params = {
-        ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=Sized)
-    }
+    params = {ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=Sized)}
 
     sized_arg: Sized = [1, 2, 3]
 
@@ -278,9 +270,7 @@ def test_validates_class_type():
 
 
 def test_validates_module_types():
-    params = {
-        ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=ModuleType)
-    }
+    params = {ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=ModuleType)}
 
     validator = CallTypeValidator(ANY_NAME, params, (random,), {})
     validator.validate()
@@ -291,9 +281,7 @@ def test_validates_module_types():
 
 
 def test_validates_callable_types():
-    params = {
-        ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=Callable)
-    }
+    params = {ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=Callable)}
 
     validator = CallTypeValidator(ANY_NAME, params, (lambda: None,), {})
     validator.validate()
@@ -339,9 +327,7 @@ def test_validates_callable_types():
     ],
 )
 def test_validates_generic_types(arg_value: Any, param_type: Any):
-    params = {
-        ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=param_type)
-    }
+    params = {ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=param_type)}
 
     validator = CallTypeValidator(ANY_NAME, params, (arg_value,), {})
     validator.validate()
@@ -358,11 +344,7 @@ def test_validates_generic_types(arg_value: Any, param_type: Any):
     ],
 )
 def test_ensures_generic_origin_type(bad_value: Any, expected_type: Any):
-    params = {
-        ANY_NAME: Parameter(
-            ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=expected_type
-        )
-    }
+    params = {ANY_NAME: Parameter(ANY_NAME, Parameter.POSITIONAL_ONLY, annotation=expected_type)}
 
     validator = CallTypeValidator(ANY_NAME, params, (bad_value,), {})
     with pytest.raises(TypeError):
@@ -475,6 +457,4 @@ def test_protocol_type_match_err():
     with pytest.raises(TypeError) as excinfo:
         type_match(Implementation(), ProtoType)
 
-    assert "The Protocol type must be annotated with @runtime_checkable." in str(
-        excinfo.value
-    )
+    assert "The Protocol type must be annotated with @runtime_checkable." in str(excinfo.value)

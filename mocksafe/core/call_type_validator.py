@@ -1,7 +1,7 @@
 from __future__ import annotations
 import builtins
 import contextlib
-from inspect import Parameter
+from inspect import Parameter, Signature
 from collections.abc import Callable, Sequence, Mapping
 from numbers import Number
 from urllib.parse import urlencode
@@ -20,97 +20,59 @@ class CallTypeValidator:
     ):
         self._method_name = method_name
         self._params = params
-        self._args = list(args)
-        self._kwargs = kwargs.copy()
+        self._args = args
+        self._kwargs = kwargs
 
     def validate(self: CallTypeValidator) -> None:
-        expected_names = list(self._params.keys())
-
-        if expected_names and expected_names[0] == "self":
-            # Exclude 'self' parameter
-            expected_names = expected_names[1:]
-
-        for name in expected_names:
-            param = self._params[name]
-
-            if param.kind == Parameter.VAR_POSITIONAL:  # *args
-                for arg in self._args:
-                    self._validate_type(param, arg)
-
-                # Consume any remaining args to be matched
-                self._args = []
-            elif param.kind == Parameter.VAR_KEYWORD:  # **kwargs
-                for arg in self._kwargs.values():
-                    self._validate_type(param, arg)
-
-                # Consume any remaining kwargs to be matched
-                self._kwargs = {}
-            elif self._param_match_arg(param):
-                arg = self._args.pop(0)
-                self._validate_type(param, arg)
-            elif self._param_match_kwarg(name, param):
-                arg = self._kwargs.pop(name, param.default)
-                self._validate_type(param, arg)
-            else:
-                raise TypeError(
-                    (
-                        f"Call to mocked method {self._method_name}() missing a"
-                        f" required argument: {param}."
-                    ),
-                )
-
-        self._check_extra_positional_args()
-        self._check_extra_keyword_args()
-
-    def _param_match_arg(self: CallTypeValidator, param: Parameter) -> bool:
-        if param.kind not in [
-            Parameter.POSITIONAL_ONLY,
-            Parameter.POSITIONAL_OR_KEYWORD,
-        ]:
-            return False
-
-        if self._args:
-            return True
-
-        return False
-
-    def _param_match_kwarg(
-        self: CallTypeValidator, name: str, param: Parameter
-    ) -> bool:
-        if param.kind not in [Parameter.KEYWORD_ONLY, Parameter.POSITIONAL_OR_KEYWORD]:
-            return False
-
-        return name in self._kwargs or param.default != Parameter.empty
-
-    def _validate_type(self: CallTypeValidator, param: Parameter, arg: Any) -> None:
-        if param.annotation != Parameter.empty and not type_match(
-            arg,
-            param.annotation,
-        ):
-            raise TypeError(
-                (
-                    f"Invalid type passed to mocked method {self._method_name}() for"
-                    f" parameter: '{param}'. Actual argument passed was:"
-                    f" {arg} ({type(arg)})."
-                ),
+        """Validate that arguments match the signature and have correct types."""
+        try:
+            # Get signature excluding self/cls parameters
+            signature = Signature(
+                [param for name, param in self._params.items() if name not in ("self", "cls")]
             )
 
-    def _check_extra_positional_args(self: CallTypeValidator) -> None:
-        if self._args:
-            raise TypeError(
-                (
-                    f"Mocked method {self._method_name}() was passed too many"
-                    f" positional argument(s): {self._args}."
-                ),
-            )
+            # Skip cls parameter if present
+            args = self._args[1:] if "cls" in self._params else self._args
 
-    def _check_extra_keyword_args(self: CallTypeValidator) -> None:
-        if self._kwargs:
+            # Bind actual arguments and keywords to the signature
+            bound = signature.bind(*args, **self._kwargs)
+
+            # Then fill in defaults for any missing arguments
+            bound.apply_defaults()
+
+            # Validate types for all bound arguments
+            for param_name, value in bound.arguments.items():
+                param = signature.parameters[param_name]
+                self._validate_type(param, value)
+
+        except TypeError as e:
+            # Re-raise with our method name for better error messages
+            error_msg = str(e).replace("missing", f"{self._method_name}() missing")
+            error_msg = error_msg.replace("got", f"{self._method_name}() got")
+            error_msg = error_msg.replace("takes", f"{self._method_name}() takes")
+            raise TypeError(error_msg) from None
+
+    def _validate_type(self: CallTypeValidator, param: Parameter, value: Any) -> None:
+        """Validate a single parameter's type."""
+        # Handle *args and **kwargs by validating each item
+        if param.kind == Parameter.VAR_POSITIONAL:
+            items = value if isinstance(value, tuple) else (value,)
+            for item in items:
+                self._validate_single_type(param, item)
+        elif param.kind == Parameter.VAR_KEYWORD:
+            items_dict = value if isinstance(value, dict) else {param.name: value}
+            for item in items_dict.values():
+                self._validate_single_type(param, item)
+        else:
+            self._validate_single_type(param, value)
+
+    def _validate_single_type(self: CallTypeValidator, param: Parameter, arg: Any) -> None:
+        """Validate that a single argument matches the parameter's type annotation."""
+        if param.annotation != Parameter.empty and not type_match(arg, param.annotation):
             raise TypeError(
-                (
-                    f"Mocked method {self._method_name}() was passed unexpected keyword"
-                    f" argument(s): {self._kwargs}."
-                ),
+                f"Invalid type passed to mocked method {self._method_name}() for "
+                f"parameter: '{param}'. Actual argument passed was: "
+                f"{arg} ({type(arg)})."
             )
 
 

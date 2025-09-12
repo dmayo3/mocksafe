@@ -203,9 +203,19 @@ class SafeMock(Generic[T]):
             return prop.fget(prop)
 
         if attr_name not in self._mocks:
-            signature = inspect.signature(original_attr)
+            # Check if this is a class method
+            is_class_method = inspect.ismethod(original_attr) and inspect.isclass(
+                original_attr.__self__
+            )
+
+            # For class methods, use the underlying function's signature to preserve 'cls'
+            if is_class_method:
+                signature = inspect.signature(original_attr.__func__)
+            else:
+                signature = inspect.signature(original_attr)
+
             self._mocks[attr_name] = MethodMock(
-                self._spec, str(self), attr_name, signature
+                self._spec, str(self), attr_name, signature, is_class_method=is_class_method
             )
 
         return self._mocks[attr_name]
@@ -229,8 +239,7 @@ class SafeMock(Generic[T]):
             prop = self._properties.get(attr_name)
             if not prop or not prop.fset:
                 raise ValueError(
-                    f"Property setter: {self}.{attr_name} needs to be stubbed"
-                    " before use"
+                    f"Property setter: {self}.{attr_name} needs to be stubbed before use"
                 )
             prop.fset(prop, value)
         elif attr_defined or attrs_unknown:
@@ -269,10 +278,8 @@ class SafeMock(Generic[T]):
             return getattr(self._spec, attr_name)
         except AttributeError:
             raise AttributeError(
-                (
-                    f"{self}.{attr_name} attribute doesn't exist on the "
-                    f"original mocked type/module {self._original}."
-                ),
+                f"{self}.{attr_name} attribute doesn't exist on the "
+                f"original mocked type/module {self._original}.",
             ) from None
 
 
@@ -283,6 +290,8 @@ class MethodMock(CallRecorder, Generic[T]):
         parent_name: str,
         name: MethodName,
         signature: inspect.Signature,
+        *,
+        is_class_method: bool = False,
     ):
         self._stub: MethodStub
         self._spy: MethodSpy
@@ -291,6 +300,7 @@ class MethodMock(CallRecorder, Generic[T]):
         self._parent_name = parent_name
         self._name = name
         self._signature = signature
+        self._is_class_method = is_class_method
         self.reset()
 
     def reset(self: MethodMock) -> None:
@@ -298,6 +308,9 @@ class MethodMock(CallRecorder, Generic[T]):
         self._spy = MethodSpy(self._name, self._stub, self._signature)
 
     def __call__(self: MethodMock, *args, **kwargs) -> Any:
+        # For class methods, inject the class as the first 'cls' argument
+        if self._is_class_method:
+            args = (self._spec, *args)
         return self._spy(*args, **kwargs)
 
     def __repr__(self: MethodMock) -> str:
@@ -318,9 +331,7 @@ class MethodMock(CallRecorder, Generic[T]):
     ) -> None:
         self._stub.add(matcher, effects)
 
-    def stub_last_call(
-        self: MethodMock, effects: list[Union[V, BaseException]]
-    ) -> None:
+    def stub_last_call(self: MethodMock, effects: list[Union[V, BaseException]]) -> None:
         matcher = call_equal_to(self._spy.pop_call())
         self._stub.add(matcher, effects)
 
@@ -328,9 +339,7 @@ class MethodMock(CallRecorder, Generic[T]):
         matcher = call_equal_to(self._spy.pop_call())
         self.custom_result(matcher, custom)
 
-    def custom_result(
-        self: MethodMock, matcher: CallMatcher, custom: ResultsProvider
-    ) -> None:
+    def custom_result(self: MethodMock, matcher: CallMatcher, custom: ResultsProvider) -> None:
         self._stub.add_effect(matcher, custom)
 
     @property
