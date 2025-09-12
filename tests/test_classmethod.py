@@ -93,8 +93,7 @@ def test_class_method_conditional_stubbing_with_cls():
         """Side effect with conditional logic using cls."""
         if cls.__name__ == "ExampleService":
             return f"Special-{prefix}-Service"
-        else:
-            return f"Generic-{prefix}-Service"
+        return f"Generic-{prefix}-Service"
 
     when(mock_service.create_with_prefix).called_with(
         mock_service.create_with_prefix("special")
@@ -115,7 +114,7 @@ def test_multiple_class_method_calls_preserve_cls():
     def logging_side_effect(cls: type[ExampleService], prefix: str) -> str:
         """Side effect that logs the cls it receives."""
         call_log.append(cls.__name__)
-        return f"Call-{len(call_log)}-{cls.__name__}"
+        return f"Call-{len(call_log)}-{prefix}-{cls.__name__}"
 
     when(mock_service.create_with_prefix).any_call().then(logging_side_effect)
 
@@ -124,6 +123,6 @@ def test_multiple_class_method_calls_preserve_cls():
     result2 = mock_service.create_with_prefix("second")
 
     # Verify cls was passed correctly for both calls
-    assert result1 == "Call-1-ExampleService"
-    assert result2 == "Call-2-ExampleService"
+    assert result1 == "Call-1-first-ExampleService"
+    assert result2 == "Call-2-second-ExampleService"
     assert call_log == ["ExampleService", "ExampleService"]
