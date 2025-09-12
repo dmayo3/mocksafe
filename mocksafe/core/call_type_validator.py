@@ -19,20 +19,30 @@ class CallTypeValidator:
         kwargs: dict,
     ):
         self._method_name = method_name
-        self._signature = self._create_validation_signature(params)
-        self._args = self._prepare_args(params, args)
+        self._params = params
+        self._args = args
         self._kwargs = kwargs
 
     def validate(self: CallTypeValidator) -> None:
         """Validate that arguments match the signature and have correct types."""
         try:
-            # Use Python's built-in argument binding
-            bound = self._signature.bind(*self._args, **self._kwargs)
+            # Get signature excluding self/cls parameters
+            signature = Signature(
+                [param for name, param in self._params.items() if name not in ("self", "cls")]
+            )
+
+            # Skip cls parameter if present
+            args = self._args[1:] if "cls" in self._params else self._args
+
+            # Bind actual arguments and keywords to the signature
+            bound = signature.bind(*args, **self._kwargs)
+
+            # Then fill in defaults for any missing arguments
             bound.apply_defaults()
 
             # Validate types for all bound arguments
             for param_name, value in bound.arguments.items():
-                param = self._signature.parameters[param_name]
+                param = signature.parameters[param_name]
                 self._validate_type(param, value)
 
         except TypeError as e:
@@ -41,32 +51,6 @@ class CallTypeValidator:
             error_msg = error_msg.replace("got", f"{self._method_name}() got")
             error_msg = error_msg.replace("takes", f"{self._method_name}() takes")
             raise TypeError(error_msg) from None
-
-    def _create_validation_signature(
-        self: CallTypeValidator, params: Mapping[str, Parameter]
-    ) -> Signature:
-        """Create a signature for validation, excluding self/cls if present."""
-        param_list = list(params.items())
-
-        # Skip self/cls parameter if it exists
-        if param_list and param_list[0][0] in {"self", "cls"}:
-            param_list = param_list[1:]
-
-        return Signature([param for _, param in param_list])
-
-    def _prepare_args(
-        self: CallTypeValidator,
-        params: Mapping[str, Parameter],
-        args: Sequence,
-    ) -> tuple:
-        """Prepare arguments, handling the special case of injected cls."""
-        param_names = list(params.keys())
-
-        # For class methods, skip the injected cls argument
-        if param_names and param_names[0] == "cls" and args:
-            return tuple(args[1:])
-
-        return tuple(args)
 
     def _validate_type(self: CallTypeValidator, param: Parameter, value: Any) -> None:
         """Validate a single parameter's type."""
