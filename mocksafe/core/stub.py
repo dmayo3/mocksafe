@@ -63,14 +63,10 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
         self._validate_effects(effects)
         self.add_effect(matcher, CannedEffects(effects))
 
-    def add_effect(
-        self: MethodStub, matcher: CallMatcher, effect: ResultsProvider[T_co]
-    ) -> None:
+    def add_effect(self: MethodStub, matcher: CallMatcher, effect: ResultsProvider[T_co]) -> None:
         self._stubs.insert(0, (matcher, effect))
 
-    def _validate_effects(
-        self: MethodStub, effects: list[Union[T_co, BaseException]]
-    ) -> None:
+    def _validate_effects(self: MethodStub, effects: list[Union[T_co, BaseException]]) -> None:
         # Runtime check in case static type checking allows an incompatible type
         # to slip through
         if self._result_type == Signature.empty:

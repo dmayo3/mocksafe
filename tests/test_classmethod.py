@@ -13,17 +13,17 @@ class ExampleService:
     """Example service with class methods that use the cls parameter."""
 
     @classmethod
-    def get_service_name(cls: type[ExampleService]) -> str:
+    def get_service_name(cls) -> str:  # type: ignore[no-untyped-def]
         """Returns the class name - uses cls parameter."""
         return cls.__name__
 
     @classmethod
-    def create_with_prefix(cls: type[ExampleService], prefix: str) -> str:
+    def create_with_prefix(cls, prefix: str) -> str:  # type: ignore[no-untyped-def]
         """Creates a string using both cls and the argument."""
         return f"{prefix}-{cls.__name__}"
 
     @classmethod
-    def factory_method(cls: type[ExampleService], config: str) -> ExampleService:
+    def factory_method(cls, config: str) -> ExampleService:  # type: ignore[no-untyped-def]
         """Factory method that would typically return an instance."""
         instance = cls()
         instance.config = config
@@ -38,7 +38,7 @@ def test_class_method_custom_side_effect_receives_cls_parameter():
     mock_service: ExampleService = mock(ExampleService)
 
     # Custom side effect that expects to receive cls as first argument
-    def custom_name_generator(cls: type[ExampleService]) -> str:
+    def custom_name_generator(cls) -> str:  # type: ignore[no-untyped-def]
         """Side effect that uses the cls parameter."""
         return f"Custom-{cls.__name__}-Service"
 
@@ -54,7 +54,7 @@ def test_class_method_custom_side_effect_with_additional_args():
     mock_service: ExampleService = mock(ExampleService)
 
     # Custom side effect expecting cls + additional args
-    def custom_creator(cls: type[ExampleService], prefix: str) -> str:
+    def custom_creator(cls, prefix: str) -> str:  # type: ignore[no-untyped-def]
         """Side effect that uses both cls and the prefix argument."""
         return f"Created-{prefix}-by-{cls.__name__}"
 
@@ -70,7 +70,7 @@ def test_class_method_factory_pattern_with_cls():
     mock_service: ExampleService = mock(ExampleService)
 
     # Factory side effect that creates instances using cls
-    def custom_factory(cls: type[ExampleService], config: str) -> ExampleService:
+    def custom_factory(cls, config: str) -> ExampleService:  # type: ignore[no-untyped-def]
         """Factory that creates instances using the cls parameter."""
         instance = cls()  # Use the cls to create instance
         instance.config = f"factory-{config}"
@@ -89,7 +89,7 @@ def test_class_method_conditional_stubbing_with_cls():
     mock_service: ExampleService = mock(ExampleService)
 
     # Conditional side effect based on both cls and arguments
-    def conditional_processor(cls: type[ExampleService], prefix: str) -> str:
+    def conditional_processor(cls, prefix: str) -> str:  # type: ignore[no-untyped-def]
         """Side effect with conditional logic using cls."""
         if cls.__name__ == "ExampleService":
             return f"Special-{prefix}-Service"
@@ -111,7 +111,7 @@ def test_multiple_class_method_calls_preserve_cls():
     # Track calls to verify cls is always passed correctly
     call_log = []
 
-    def logging_side_effect(cls: type[ExampleService], prefix: str) -> str:
+    def logging_side_effect(cls, prefix: str) -> str:  # type: ignore[no-untyped-def]
         """Side effect that logs the cls it receives."""
         call_log.append(cls.__name__)
         return f"Call-{len(call_log)}-{prefix}-{cls.__name__}"

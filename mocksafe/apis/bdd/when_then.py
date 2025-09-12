@@ -32,9 +32,7 @@ def when(mock_callable: Callable[..., T]) -> WhenStubber[T]:
         mock_callable = mock_callable.get_mocked_attr("__call__")
 
     if not isinstance(mock_callable, MethodMock):
-        raise ValueError(
-            f"Not a SafeMocked method: {mock_callable} ({type(mock_callable)})"
-        )
+        raise ValueError(f"Not a SafeMocked method: {mock_callable} ({type(mock_callable)})")
 
     return WhenStubber(mock_callable)
 
@@ -107,9 +105,7 @@ class WhenStubber(Generic[T]):
         """
         return LastCallStubber(self._method_mock)
 
-    def call_matching(
-        self: WhenStubber, call_lambda: Callable[..., bool]
-    ) -> MatchCallStubber[T]:
+    def call_matching(self: WhenStubber, call_lambda: Callable[..., bool]) -> MatchCallStubber[T]:
         """
         Use a lambda to determine whether to match a call.
 
@@ -144,9 +140,7 @@ class MatchCallStubber(Generic[T]):
 
     """
 
-    def __init__(
-        self: MatchCallStubber, method_mock: MethodMock[T], matcher: CallMatcher
-    ):
+    def __init__(self: MatchCallStubber, method_mock: MethodMock[T], matcher: CallMatcher):
         self._method_mock = method_mock
         self._matcher = matcher
 
@@ -168,9 +162,7 @@ class MatchCallStubber(Generic[T]):
         """
         self._method_mock.custom_result(self._matcher, result)
 
-    def use_side_effects(
-        self: MatchCallStubber, *side_effects: Union[T, BaseException]
-    ) -> None:
+    def use_side_effects(self: MatchCallStubber, *side_effects: Union[T, BaseException]) -> None:
         """
         Specify an ordered sequence of results and/or exceptions to be returned/raised.
         """
@@ -234,9 +226,7 @@ class LastCallStubber(Generic[T]):
     def then(self: LastCallStubber, result: ResultsProvider) -> None:
         self._method_mock.custom_result_for_last_call(result)
 
-    def use_side_effects(
-        self: LastCallStubber, *side_effects: Union[T, BaseException]
-    ) -> None:
+    def use_side_effects(self: LastCallStubber, *side_effects: Union[T, BaseException]) -> None:
         if not self._method_mock.calls:
             raise ValueError(
                 (

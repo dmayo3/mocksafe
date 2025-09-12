@@ -22,8 +22,7 @@ def that(mocked: Any) -> MockCalls:
     """
     if not isinstance(mocked, CallRecorder):
         raise TypeError(
-            f"Expected a mocked method/function/property but got '{mocked}'"
-            f" ({type(mocked)})"
+            f"Expected a mocked method/function/property but got '{mocked}'" f" ({type(mocked)})"
         )
     return MockCalls(mocked)
 

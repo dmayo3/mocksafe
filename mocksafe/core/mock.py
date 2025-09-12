@@ -214,7 +214,9 @@ class SafeMock(Generic[T]):
             else:
                 signature = inspect.signature(original_attr)
 
-            self._mocks[attr_name] = MethodMock(self._spec, str(self), attr_name, signature)
+            self._mocks[attr_name] = MethodMock(
+                self._spec, str(self), attr_name, signature, is_class_method=is_class_method
+            )
 
         return self._mocks[attr_name]
 
@@ -288,6 +290,8 @@ class MethodMock(CallRecorder, Generic[T]):
         parent_name: str,
         name: MethodName,
         signature: inspect.Signature,
+        *,
+        is_class_method: bool = False,
     ):
         self._stub: MethodStub
         self._spy: MethodSpy
@@ -296,6 +300,7 @@ class MethodMock(CallRecorder, Generic[T]):
         self._parent_name = parent_name
         self._name = name
         self._signature = signature
+        self._is_class_method = is_class_method
         self.reset()
 
     def reset(self: MethodMock) -> None:
@@ -303,6 +308,9 @@ class MethodMock(CallRecorder, Generic[T]):
         self._spy = MethodSpy(self._name, self._stub, self._signature)
 
     def __call__(self: MethodMock, *args, **kwargs) -> Any:
+        # For class methods, inject the class as the first 'cls' argument
+        if self._is_class_method:
+            args = (self._spec, *args)
         return self._spy(*args, **kwargs)
 
     def __repr__(self: MethodMock) -> str:
