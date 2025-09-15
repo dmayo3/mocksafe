@@ -1,6 +1,6 @@
 from __future__ import annotations
 import inspect
-from typing import Generic, Union, TypeVar, Any, cast
+from typing import Generic, TypeVar, Any, cast
 from collections.abc import Callable
 from mocksafe.core.custom_types import CallMatcher
 from mocksafe.core.mock_property import MockProperty
@@ -162,7 +162,7 @@ class MatchCallStubber(Generic[T]):
         """
         self._method_mock.custom_result(self._matcher, result)
 
-    def use_side_effects(self: MatchCallStubber, *side_effects: Union[T, BaseException]) -> None:
+    def use_side_effects(self: MatchCallStubber, *side_effects: T | BaseException) -> None:
         """
         Specify an ordered sequence of results and/or exceptions to be returned/raised.
         """
@@ -226,14 +226,12 @@ class LastCallStubber(Generic[T]):
     def then(self: LastCallStubber, result: ResultsProvider) -> None:
         self._method_mock.custom_result_for_last_call(result)
 
-    def use_side_effects(self: LastCallStubber, *side_effects: Union[T, BaseException]) -> None:
+    def use_side_effects(self: LastCallStubber, *side_effects: T | BaseException) -> None:
         if not self._method_mock.calls:
             raise ValueError(
-                (
-                    "Mocked methods do not match: "
-                    f"when({self._method_mock.full_name})"
-                    ".called_with(<different_method>)"
-                ),
+                "Mocked methods do not match: "
+                f"when({self._method_mock.full_name})"
+                ".called_with(<different_method>)",
             )
 
         self._method_mock.stub_last_call(list(side_effects))
@@ -297,10 +295,8 @@ class PropertyStubber:
                 raise TypeError
         except (AttributeError, TypeError):
             raise TypeError(
-                (
-                    f"{self._mock_object}.{prop_name} attribute is not a getter "
-                    f"property. Actual attribute: {prop_attr} ({type(prop_attr)})."
-                ),
+                f"{self._mock_object}.{prop_name} attribute is not a getter "
+                f"property. Actual attribute: {prop_attr} ({type(prop_attr)}).",
             ) from None
 
         sig = inspect.signature(prop_attr.fget)
@@ -308,11 +304,9 @@ class PropertyStubber:
 
         if has_type and not type_match(value.return_value, sig.return_annotation):
             raise TypeError(
-                (
-                    f"{self._mock_object}.{prop_name} property has return type"
-                    f" {sig.return_annotation}, therefore it can't be stubbed with"
-                    f" {value}."
-                ),
+                f"{self._mock_object}.{prop_name} property has return type"
+                f" {sig.return_annotation}, therefore it can't be stubbed with"
+                f" {value}.",
             )
 
         self._mock_object._properties[prop_name] = value

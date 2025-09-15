@@ -3,16 +3,13 @@ import random
 from inspect import Parameter
 from types import ModuleType
 from typing import (
-    Mapping,
     ContextManager,
-    Callable,
     Protocol,
-    Sequence,
     Union,
     Optional,
     Any,
-    Generator,
 )
+from collections.abc import Mapping, Callable, Sequence, Generator
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sized
 from decimal import Decimal

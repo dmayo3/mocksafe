@@ -7,8 +7,6 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-      - id: check-added-large-files
-        exclude: '^\.ropeproject/.*'
       - id: check-merge-conflict
       - id: check-toml
       - id: debug-statements
@@ -59,3 +57,9 @@ repos:
               docs/.*\.py|
               setup\.py
           )$
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+      - id: pyupgrade
+        args: [--py310-plus]

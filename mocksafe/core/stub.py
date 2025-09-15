@@ -1,6 +1,6 @@
 from __future__ import annotations
 from inspect import Signature, isclass
-from typing import Generic, Protocol, TypeVar, Optional, Union
+from typing import Generic, Protocol, TypeVar
 from mocksafe.core.custom_types import MethodName, CallMatcher
 from mocksafe.core.call_type_validator import type_match
 from mocksafe.core.spy import Delegate
@@ -22,7 +22,7 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
         self._stubs: list[tuple[CallMatcher, ResultsProvider[T_co]]] = []
         self._result_type = result_type
 
-    def __call__(self: MethodStub, *args, **kwargs) -> Optional[T_co]:
+    def __call__(self: MethodStub, *args, **kwargs) -> T_co | None:
         call = (tuple(args), kwargs)
         for matcher, results in self._stubs:
             if matcher(call):
@@ -31,7 +31,7 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
         # No default return value has been stubbed, try to determine
         # something sensible to return
 
-        default_value: Optional[T_co]
+        default_value: T_co | None
         result_type: type = self._result_type
 
         primitive_result_type = isclass(result_type) and any(
@@ -58,7 +58,7 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
     def add(
         self: MethodStub,
         matcher: CallMatcher,
-        effects: list[Union[T_co, BaseException]],
+        effects: list[T_co | BaseException],
     ) -> None:
         self._validate_effects(effects)
         self.add_effect(matcher, CannedEffects(effects))
@@ -66,7 +66,7 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
     def add_effect(self: MethodStub, matcher: CallMatcher, effect: ResultsProvider[T_co]) -> None:
         self._stubs.insert(0, (matcher, effect))
 
-    def _validate_effects(self: MethodStub, effects: list[Union[T_co, BaseException]]) -> None:
+    def _validate_effects(self: MethodStub, effects: list[T_co | BaseException]) -> None:
         # Runtime check in case static type checking allows an incompatible type
         # to slip through
         if self._result_type == Signature.empty:

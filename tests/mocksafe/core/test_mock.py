@@ -10,7 +10,7 @@ class TestClass:
     def foo(self: TestClass): ...
 
     @classmethod
-    def class_method(cls: type["TestClass"]) -> str:
+    def class_method(cls: type[TestClass]) -> str:
         return cls.__name__
 
     @staticmethod
