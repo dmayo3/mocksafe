@@ -1,4 +1,3 @@
-import sys
 import contextlib
 import random
 from inspect import Parameter
@@ -225,17 +224,10 @@ def test_validates_standard_types(arg_value: Any, param_type: Any):
         (None, Optional[str]),
         (True, Union[bool, None]),
         (None, Union[bool, None]),
-        # New union syntax in Python 3.10+ only
-        *(
-            [
-                (True, bool | int),  # type: ignore
-                (123, bool | int),  # type: ignore
-                ("yes", str | None),  # type: ignore
-                (None, str | None),  # type: ignore
-            ]
-            if sys.version_info[:3] >= (3, 10)
-            else []
-        ),
+        (True, bool | int),
+        (123, bool | int),
+        ("yes", str | None),
+        (None, str | None),
     ],
 )
 def test_validates_union_types(arg_value: Any, param_type: Any):

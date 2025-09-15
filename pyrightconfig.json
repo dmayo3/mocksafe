@@ -1,4 +1,5 @@
 {
   "venvPath": ".tox",
-  "venv": "pyright"
+  "venv": "pyright",
+  "pythonVersion": "3.10"
 }

@@ -5,8 +5,8 @@ from inspect import Parameter, Signature
 from collections.abc import Callable, Sequence, Mapping
 from numbers import Number
 from urllib.parse import urlencode
-from types import GenericAlias
-from typing import Union, Any, cast
+from types import GenericAlias, UnionType
+from typing import Union, Any, cast, get_origin
 from mocksafe.core.custom_types import MethodName
 
 
@@ -143,24 +143,7 @@ def _resolve_type(annotation: Any) -> Any:
 
 
 def _is_union(t: type) -> bool:
-    # 1. Check for types.UnionType
-
-    # This type is not supported in Python 3.9
-    # So we check for it at runtime in this hacky way
-    if t.__class__.__name__ == "UnionType":
-        return True
-
-    # 2. Check for typing.Union / typing.Optional
-    # Both are equivalent under the covers
-    try:
-        generic_type: GenericAlias = cast(GenericAlias, t)
-
-        # typing.Union cannot be used with isinstance()
-        return generic_type.__origin__ == Union
-    except AttributeError:
-        pass
-
-    return False
+    return get_origin(t) in (UnionType, Union)
 
 
 def _gh_raise_issue_url(gh_issue_params: dict[str, str]) -> str:
