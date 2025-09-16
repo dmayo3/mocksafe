@@ -1,6 +1,6 @@
 [project]
 name = "mocksafe"
-version = "0.9.0-beta"
+version = "0.10.0-beta"
 
 description = "A mocking library developed to enable static and runtime type checking of your mocks to keep them in sync with production code."
 
@@ -79,7 +79,7 @@ requires = ["setuptools", "wheel"]
 mocksafe = "mocksafe.plugin"
 
 [tool.bumpver]
-current_version = "0.9.0-beta"
+current_version = "0.10.0-beta"
 version_pattern = "MAJOR.MINOR.PATCH[-TAG]"
 commit_message = "Bump version {old_version} -> {new_version}"
 commit = true
