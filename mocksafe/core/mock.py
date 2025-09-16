@@ -2,7 +2,7 @@ from __future__ import annotations
 import inspect
 from itertools import count
 from types import ModuleType
-from typing import Generic, TypeVar, Optional, Union, Any, cast, get_type_hints
+from typing import Generic, TypeVar, Any, cast, get_type_hints
 from mocksafe.core.custom_types import MethodName, PropertyName, CallMatcher, Call
 from mocksafe.core.mock_property import MockProperty
 from mocksafe.core.spy import MethodSpy, CallRecorder
@@ -17,7 +17,7 @@ M = TypeVar("M", bound=ModuleType)
 MOCK_NUMBER = count()
 
 
-def mock(spec: type[T], name: Optional[str] = None) -> T:
+def mock(spec: type[T], name: str | None = None) -> T:
     """
     Creates a mock of the given ``spec``.
 
@@ -55,7 +55,7 @@ def mock(spec: type[T], name: Optional[str] = None) -> T:
     return cast(T, SafeMock(spec, name))
 
 
-def mock_module(module: M, name: Optional[str] = None) -> M:
+def mock_module(module: M, name: str | None = None) -> M:
     """
     Creates a mocked version of the given ``module``.
 
@@ -129,8 +129,8 @@ class SafeMock(Generic[T]):
     def __init__(
         self: SafeMock,
         spec: type[T],
-        name: Optional[str] = None,
-        module: Optional[M] = None,
+        name: str | None = None,
+        module: M | None = None,
     ):
         """
         :param spec: the specification (class/protocol/type) to be mocked
@@ -327,11 +327,11 @@ class MethodMock(CallRecorder, Generic[T]):
     def add_stub(
         self: MethodMock,
         matcher: CallMatcher,
-        effects: list[Union[V, BaseException]],
+        effects: list[V | BaseException],
     ) -> None:
         self._stub.add(matcher, effects)
 
-    def stub_last_call(self: MethodMock, effects: list[Union[V, BaseException]]) -> None:
+    def stub_last_call(self: MethodMock, effects: list[V | BaseException]) -> None:
         matcher = call_equal_to(self._spy.pop_call())
         self._stub.add(matcher, effects)
 

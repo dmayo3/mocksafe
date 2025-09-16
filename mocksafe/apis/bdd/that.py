@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import NamedTuple, Union, Any
+from typing import NamedTuple, Any
 from mocksafe.core.custom_types import Call
 from mocksafe.core.spy import CallRecorder
 
@@ -22,7 +22,7 @@ def that(mocked: Any) -> MockCalls:
     """
     if not isinstance(mocked, CallRecorder):
         raise TypeError(
-            f"Expected a mocked method/function/property but got '{mocked}'" f" ({type(mocked)})"
+            f"Expected a mocked method/function/property but got '{mocked}' ({type(mocked)})"
         )
     return MockCalls(mocked)
 
@@ -126,11 +126,11 @@ class MockCalls:
         return len(self._call_recorder.calls)
 
     @property
-    def last_call(self: MockCalls) -> Union[Args, Call]:
+    def last_call(self: MockCalls) -> Args | Call:
         """Returns details of the last call made to the mocked method."""
         return self.nth_call(-1)
 
-    def nth_call(self: MockCalls, n: int) -> Union[Args, Call]:
+    def nth_call(self: MockCalls, n: int) -> Args | Call:
         """Returns details of the Nth call made to the mocked method."""
         call = self._call_recorder.nth_call(n)
 

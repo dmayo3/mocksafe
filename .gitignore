@@ -8,3 +8,6 @@ docs/generated
 htmlcov
 pytest.xml
 build
+.ropeproject
+.pytest_cache
+.mypy_cache

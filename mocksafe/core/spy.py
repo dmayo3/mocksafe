@@ -1,6 +1,6 @@
 from __future__ import annotations
 from inspect import Signature
-from typing import Generic, Optional, TypeVar, Protocol, runtime_checkable
+from typing import Generic, TypeVar, Protocol, runtime_checkable
 from mocksafe.core.custom_types import MethodName, Call
 from mocksafe.core.call_type_validator import CallTypeValidator
 
@@ -8,7 +8,7 @@ T_co = TypeVar("T_co", covariant=True)
 
 
 class Delegate(Protocol[T_co]):
-    def __call__(self, *args, **kwargs) -> Optional[T_co]: ...
+    def __call__(self, *args, **kwargs) -> T_co | None: ...
 
 
 @runtime_checkable
@@ -39,7 +39,7 @@ class MethodSpy(CallRecorder, Generic[T_co]):
         self._calls: list[Call] = []
         self._signature = signature
 
-    def __call__(self: MethodSpy, *args, **kwargs) -> Optional[T_co]:
+    def __call__(self: MethodSpy, *args, **kwargs) -> T_co | None:
         validator = CallTypeValidator(
             self._name,
             self._signature.parameters,
@@ -75,8 +75,6 @@ class MethodSpy(CallRecorder, Generic[T_co]):
                 raise ValueError(f"The mocked method {self._name}() was not called.")
 
             raise ValueError(
-                (
-                    f"Mocked method {self._name}() was not called {n + 1} time(s). "
-                    f"The actual number of calls was {len(self.calls)}."
-                ),
+                f"Mocked method {self._name}() was not called {n + 1} time(s). "
+                f"The actual number of calls was {len(self.calls)}.",
             )

@@ -7,8 +7,6 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-      - id: check-added-large-files
-        exclude: '^\.ropeproject/.*'
       - id: check-merge-conflict
       - id: check-toml
       - id: debug-statements
@@ -46,7 +44,12 @@ repos:
     rev: v1.17.1
     hooks:
       - id: mypy
-        args: [--check-untyped-defs, --ignore-missing-imports]
+        args:
+          [
+            --check-untyped-defs,
+            --ignore-missing-imports,
+            --python-version=3.10,
+          ]
         additional_dependencies:
           - pytest>=7
         exclude: |
@@ -54,3 +57,9 @@ repos:
               docs/.*\.py|
               setup\.py
           )$
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+      - id: pyupgrade
+        args: [--py310-plus]

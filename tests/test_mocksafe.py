@@ -1,7 +1,6 @@
 from collections.abc import Callable
 import random
 from types import ModuleType
-from typing import Optional
 import pytest
 from mocksafe import mock, mock_module, when, that, spy
 
@@ -10,7 +9,7 @@ class MyClass:
     def foo(self, bar: str, baz: int = 123) -> int:
         return baz + len(bar)
 
-    def quux(self) -> Optional[str]:
+    def quux(self) -> str | None:
         return "something"
 
 
