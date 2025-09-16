@@ -179,12 +179,16 @@ If deployment approval fails:
 
 ## Future Improvements
 
+**📋 See Issue #95** for comprehensive automation enhancement tracking and implementation plan.
+
 ### Automation Opportunities
 
-1. **ReadTheDocs Integration**: Investigate API-based version activation
-2. **PyPI Documentation Links**: Research fixing documentation URL references
-3. **Release Notes Generation**: Consider automated changelog generation
-4. **Milestone Management**: Could be automated based on version tags
+1. **ReadTheDocs Integration**: Investigate API-based version activation (tracked in #95)
+2. **PyPI Documentation Links**: Research fixing documentation URL references (tracked in #95)
+3. **Release Notes Generation**: Consider automated changelog generation (tracked in #95)
+4. **Milestone Management**: Could be automated based on version tags (tracked in #95)
+5. **Deployment Approval Automation**: Streamline manual deployment approval process (tracked in #95)
+6. **Workflow Consolidation**: Combine version bump, tagging, and release into single workflow (tracked in #95)
 
 ### Process Improvements
 
