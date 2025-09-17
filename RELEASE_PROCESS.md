@@ -1,16 +1,14 @@
 # Release Process Documentation
 
-This document outlines the complete release process for MockSafe, based on the successful v0.10.0-beta release and the procedures defined in Issue #90.
+This document outlines the complete release process for MockSafe.
 
 ## Prerequisites
 
 Before starting a release, ensure you have:
 
-- [ ] Write access to the repository
 - [ ] `gh` CLI tool installed and authenticated
 - [ ] `bumpver` package installed
 - [ ] All planned features and fixes merged into `main`
-- [ ] Access to PyPI and TestPyPI (for manual artifact review)
 - [ ] Access to ReadTheDocs admin panel
 
 ## Release Process Steps
@@ -22,35 +20,35 @@ Before starting a release, ensure you have:
    git fetch origin
    git checkout main
    git pull origin main
-   git checkout -b release-vX.Y.Z-beta  # or appropriate version
+   git checkout -b release-vX.Y.Z  # Use appropriate version number
    ```
 
 ### 2. Version Bumping
 
 2. **Test version bump (dry run):**
    ```bash
-   bumpver update --minor --tag beta --no-commit --no-tag-commit --dry
+   bumpver update [--major|--minor|--patch] [--tag TAG] --no-commit --no-tag-commit --dry
    ```
 
 3. **Review the output** to ensure it looks correct. Check that all files are updated appropriately.
 
 4. **Apply version bump:**
    ```bash
-   bumpver update --minor --tag beta --no-commit --no-tag-commit
+   bumpver update [--major|--minor|--patch] [--tag TAG] --no-commit --no-tag-commit
    ```
 
 5. **Commit the changes:**
    ```bash
    git add .
-   git commit -m "Bump version X.Y.Z-beta -> X.Y.Z-beta"
+   git commit -m "Bump version U.V.W -> X.Y.Z"
    ```
 
 ### 3. Pull Request Process
 
 6. **Push branch and create PR:**
    ```bash
-   git push origin release-vX.Y.Z-beta
-   gh pr create --title "Release vX.Y.Z-beta" --body "Version bump for vX.Y.Z-beta release. Closes #[issue-number]"
+   git push origin release-vX.Y.Z
+   gh pr create --title "Release vX.Y.Z" --body "Version bump for vX.Y.Z release. Closes #[issue-number]"
    ```
 
 7. **Wait for GitHub Actions checks to pass** - Monitor the PR status.
@@ -70,13 +68,13 @@ Before starting a release, ensure you have:
     ```bash
     git checkout main
     git pull origin main
-    git tag X.Y.Z-beta
-    git push origin X.Y.Z-beta
+    git tag X.Y.Z
+    git push origin X.Y.Z
     ```
 
 11. **Trigger release workflow on the tag:**
     ```bash
-    gh workflow run release.yaml --ref X.Y.Z-beta
+    gh workflow run release.yaml --ref X.Y.Z
     ```
 
 12. **Monitor and approve deployment:**
@@ -102,16 +100,16 @@ Before starting a release, ensure you have:
 ### 5. Manual Review and Documentation
 
 13. **Manual artifact review** - Check the following URLs:
-    - **PyPI Package**: https://pypi.org/project/mocksafe/X.Y.Z-betaN/
-    - **TestPyPI Package**: https://test.pypi.org/project/mocksafe/X.Y.Z-betaN/
-    - **ReadTheDocs**: https://mocksafe.readthedocs.io/en/X.Y.Z-beta/
+    - **PyPI Package**: https://pypi.org/project/mocksafe/X.Y.Z/
+    - **TestPyPI Package**: https://test.pypi.org/project/mocksafe/X.Y.Z/
+    - **ReadTheDocs**: https://mocksafe.readthedocs.io/en/X.Y.Z/
 
 14. **Create GitHub Release:**
     ```bash
-    gh release create X.Y.Z-beta \
-      --title "Release vX.Y.Z-beta" \
+    gh release create X.Y.Z \
+      --title "Release vX.Y.Z" \
       --notes "[Release notes content]" \
-      --prerelease
+      [--prerelease]  # Use for beta/rc releases
     ```
 
 ### 6. Milestone Management
@@ -119,7 +117,7 @@ Before starting a release, ensure you have:
 15. **Close the milestone:**
     ```bash
     # Find milestone number
-    gh api repos/dmayo3/mocksafe/milestones --jq '.[] | select(.title=="vX.Y beta") | .number'
+    gh api repos/dmayo3/mocksafe/milestones --jq '.[] | select(.title=="vX.Y") | .number'
 
     # Close milestone
     gh api repos/dmayo3/mocksafe/milestones/[NUMBER] --method PATCH --field state=closed
@@ -129,11 +127,9 @@ Before starting a release, ensure you have:
 
 ### 1. PyPI Documentation Link Issue
 
-**Problem**: The "Docs: Read The Docs" link on the PyPI package page may point to an older version (e.g., 0.6 instead of the current release).
+**Problem**: The "Docs: Read The Docs" link on the PyPI package page may point to an older version.
 
-**Current Status**: Not easily fixable post-release. This appears to be cached or configured somewhere in the package metadata.
-
-**For Next Release**: Investigate if this can be fixed in `pyproject.toml` or another configuration file before release.
+**Current Status**: Requires investigation and should be tracked as a separate issue.
 
 ### 2. ReadTheDocs Version Activation
 
@@ -142,10 +138,10 @@ Before starting a release, ensure you have:
 **Manual Steps Required**:
 1. Go to ReadTheDocs admin panel
 2. Navigate to the project settings
-3. Find the new version (X.Y.Z-beta)
+3. Find the new version
 4. Manually activate/enable it
 
-**Automation Opportunity**: Investigate ReadTheDocs API for automatic version activation.
+**Note**: Automation opportunities should be tracked as separate issues.
 
 ## Environment IDs for Deployment Approval
 
@@ -176,25 +172,13 @@ If deployment approval fails:
 - Verify you have admin access to the repository
 - Check that the GitHub CLI is authenticated with appropriate permissions
 - The authenticated user must be listed as a reviewer in the environment protection rules
+- If you lack permissions, request help from someone who can approve deployments
 
-## Future Improvements
+## Process Improvements
 
-**📋 See Issue #95** for comprehensive automation enhancement tracking and implementation plan.
+Future improvements should be tracked as GitHub Issues with appropriate labels and milestones assigned.
 
-### Automation Opportunities
-
-1. **ReadTheDocs Integration**: Investigate API-based version activation (tracked in #95)
-2. **PyPI Documentation Links**: Research fixing documentation URL references (tracked in #95)
-3. **Release Notes Generation**: Consider automated changelog generation (tracked in #95)
-4. **Milestone Management**: Could be automated based on version tags (tracked in #95)
-5. **Deployment Approval Automation**: Streamline manual deployment approval process (tracked in #95)
-6. **Workflow Consolidation**: Combine version bump, tagging, and release into single workflow (tracked in #95)
-
-### Process Improvements
-
-1. **Release Checklist**: Create a GitHub issue template for releases
-2. **Notification System**: Set up notifications for release completion
-3. **Rollback Procedures**: Document rollback steps for failed releases
+Potential areas for improvement include workflow automation, documentation updates, and tooling enhancements.
 
 ## Release History
 
