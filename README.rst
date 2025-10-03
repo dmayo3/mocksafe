@@ -41,13 +41,13 @@ Install and quickstart
 
     pip install mocksafe
 
-`Library Usage <https://mocksafe.readthedocs.io/en/0.6/usage.html>`_
+`Library Usage <https://mocksafe.readthedocs.io/en/0.10.0-beta/usage.html>`_
 
 Links
 ----------------------
 
 :Install: `PyPi <https://pypi.org/project/mocksafe>`_
-:Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/0.6/>`_
+:Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/0.10.0-beta/>`_
 :License: `MIT <https://github.com/dmayo3/mocksafe/blob/main/LICENSE>`_
 :Source:  `GitHub <https://github.com/dmayo3/mocksafe>`_
 :Issues:  `GitHub Issues <https://github.com/dmayo3/mocksafe/issues>`_
