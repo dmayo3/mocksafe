@@ -37,7 +37,12 @@ jobs:
           pip install "tox>=4.5"
       - name: Run tox
         run: |
-          tox --colored no --quiet
+          if [[ "${{ matrix.python-version }}" == "3.14.0-rc.3" ]]; then
+            # Skip linting for Python 3.14 due to pylint/astroid compatibility issues
+            tox -e py314 --colored no --quiet
+          else
+            tox --colored no --quiet
+          fi
       - name: Upload coverage to Codecov
         if: ${{ matrix.python-version == '3.10' }}
         uses: codecov/codecov-action@v5
