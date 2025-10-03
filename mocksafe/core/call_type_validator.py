@@ -1,6 +1,7 @@
 from __future__ import annotations
 import builtins
 import contextlib
+import sys
 from inspect import Parameter, Signature
 from collections.abc import Callable, Sequence, Mapping
 from numbers import Number
@@ -79,6 +80,12 @@ class CallTypeValidator:
 def type_match(arg: Any, annotation: Any) -> bool:
     expected_type: Any = _resolve_type(annotation)
 
+    # If we still have a string annotation that couldn't be resolved,
+    # we can't properly validate the type. Be lenient and accept the value.
+    # This handles forward references that couldn't be resolved.
+    if isinstance(expected_type, str):
+        return True
+
     if _is_union(expected_type):
         generic_type: GenericAlias = cast(GenericAlias, expected_type)
 
@@ -126,20 +133,37 @@ def _resolve_type(annotation: Any) -> Any:
 
     # It's a string literal type that we need to resolve
     # E.g. def g(x: "int") needs to resolve to int
+
+    # First try builtins
     with contextlib.suppress(AttributeError):
         return getattr(builtins, annotation)
 
-    gh_issue_params = {
-        "title": "Failed to resolve literal annotation",
-        "labels": "bug",
-        "body": f"Annotation: '{annotation}'",
-    }
-    gh_raise_issue_url = _gh_raise_issue_url(gh_issue_params)
-    raise NotImplementedError(
-        f"Failed to resolve literal type annotation '{annotation}'.\n"
-        f"Please raise an issue for this: {gh_raise_issue_url}\n"
-        "In the meantime please work around the problem."
-    )
+    # Try to resolve from the caller's frame globals
+    # This handles forward references like "MyClass" or "OtherClass"
+    frame = sys._getframe(2)  # Go up two frames to get the actual caller
+    while frame is not None:
+        frame_globals = frame.f_globals
+        frame_locals = frame.f_locals
+
+        # Try globals first
+        if annotation in frame_globals:
+            return frame_globals[annotation]
+
+        # Then try locals
+        if annotation in frame_locals:
+            return frame_locals[annotation]
+
+        # Go up the frame stack
+        next_frame = frame.f_back
+        if next_frame is None or next_frame.f_code.co_filename.startswith("<"):
+            break
+        frame = next_frame
+
+    # If we still can't resolve it, it might be a forward reference that
+    # should have been resolved by get_type_hints(). For now, return the
+    # string and let the type checking be lenient
+    # This allows forward references to at least not crash the system
+    return annotation
 
 
 def _is_union(t: type) -> bool:

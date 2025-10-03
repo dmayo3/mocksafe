@@ -214,6 +214,28 @@ class SafeMock(Generic[T]):
             else:
                 signature = inspect.signature(original_attr)
 
+            # Resolve forward references in the return annotation
+            return_annotation = signature.return_annotation
+            if isinstance(return_annotation, str):
+                # It's a forward reference, try to resolve it
+                try:
+                    # Try to get type hints for the method which resolves forward references
+                    if is_class_method:
+                        hints = get_type_hints(original_attr.__func__)
+                    else:
+                        hints = get_type_hints(original_attr)
+
+                    # Get the resolved return type
+                    return_annotation = hints.get("return", return_annotation)
+                except (NameError, AttributeError):
+                    # If we can't resolve it, keep the string annotation
+                    # The type validator will handle it
+                    pass
+
+            # Create a new signature with the resolved return annotation if needed
+            if return_annotation != signature.return_annotation:
+                signature = signature.replace(return_annotation=return_annotation)
+
             self._mocks[attr_name] = MethodMock(
                 self._spec, str(self), attr_name, signature, is_class_method=is_class_method
             )
