@@ -122,9 +122,9 @@ def test_unresolvable_forward_reference():
     class LocalClass:
         """Local class with unresolvable forward reference."""
 
-        def get_unknown(self) -> NonExistentClass:  # type: ignore[name-defined]  # noqa: F821
+        def get_unknown(self):
             """Method with reference to non-existent class."""
-            pass
+            return None  # type: ignore[name-defined]  # noqa: F821
 
     # This should not crash - the unresolvable annotation should be handled gracefully
     mock_obj = mock(LocalClass)
@@ -158,7 +158,7 @@ def test_forward_reference_in_local_scope():
 
 def test_complex_type_annotation_error_handling():
     """Test handling of complex type annotations that might fail."""
-
+    # pylint: disable=import-outside-toplevel
     from typing import Any, Generic, TypeVar
 
     T = TypeVar("T")  # noqa: N806
@@ -210,12 +210,10 @@ def test_frame_stack_resolution():
     """Test that frame stack traversal works for finding types."""
 
     # Define a type at module level that will be in frame globals
-    global ModuleLevelClass
+    global ModuleLevelClass  # pylint: disable=global-variable-undefined
 
     class ModuleLevelClass:
         """Class defined at module level."""
-
-        pass
 
     class ClassWithModuleRef:
         """Class referencing module-level class."""
@@ -239,8 +237,6 @@ def test_frame_locals_resolution():
 
         class LocalDefinedClass:
             """Class defined in function local scope."""
-
-            pass
 
         class RefersToLocal:
             """Class that refers to locally defined class."""
