@@ -122,15 +122,15 @@ def test_unresolvable_forward_reference():
     class LocalClass:
         """Local class with unresolvable forward reference."""
 
-        def get_unknown(self):
+        def get_unknown(self):  # type: ignore[no-untyped-def]
             """Method with reference to non-existent class."""
-            return None  # type: ignore[name-defined]  # noqa: F821
+            return None  # noqa: F821
 
     # This should not crash - the unresolvable annotation should be handled gracefully
     mock_obj = mock(LocalClass)
 
     # Since the type can't be resolved, it should accept any value
-    when(mock_obj.get_unknown).any_call().then_return("any value")
+    when(mock_obj.get_unknown).any_call().then_return("any value")  # type: ignore[arg-type]
     assert mock_obj.get_unknown() == "any value"
 
 
