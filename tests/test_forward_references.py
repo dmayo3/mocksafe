@@ -18,6 +18,7 @@ class MyClass:
         """Factory method with arguments."""
         instance = MyClass()
         # Store name as an attribute (not used in tests, just for completeness)
+        _ = name  # Acknowledge unused parameter
         return instance
 
     def get_related(self) -> OtherClass:
@@ -27,6 +28,7 @@ class MyClass:
     @classmethod
     def from_dict(cls: type[MyClass], data: dict) -> MyClass:
         """Class method with forward reference return type."""
+        _ = data  # Acknowledge unused parameter
         return cls()
 
 
