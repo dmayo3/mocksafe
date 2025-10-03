@@ -19,7 +19,7 @@ jobs:
           - "3.10"
           - "3.11"
           - "3.13"
-          - "3.14"
+          - "3.14.0-rc.3"
     steps:
       - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
