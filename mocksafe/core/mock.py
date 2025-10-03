@@ -227,9 +227,10 @@ class SafeMock(Generic[T]):
 
                     # Get the resolved return type
                     return_annotation = hints.get("return", return_annotation)
-                except (NameError, AttributeError):
+                except (NameError, AttributeError, TypeError):
                     # If we can't resolve it, keep the string annotation
                     # The type validator will handle it
+                    # TypeError can occur with some complex type annotations
                     pass
 
             # Create a new signature with the resolved return annotation if needed

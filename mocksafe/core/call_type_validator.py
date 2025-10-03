@@ -6,8 +6,8 @@ from inspect import Parameter, Signature
 from collections.abc import Callable, Sequence, Mapping
 from numbers import Number
 from urllib.parse import urlencode
-from types import GenericAlias, UnionType
-from typing import Union, Any, cast, get_origin
+from types import FrameType, GenericAlias, UnionType
+from typing import Any, Union, cast, get_origin
 from mocksafe.core.custom_types import MethodName
 
 
@@ -89,7 +89,7 @@ def type_match(arg: Any, annotation: Any) -> bool:
     if _is_union(expected_type):
         generic_type: GenericAlias = cast(GenericAlias, expected_type)
 
-        union: tuple = generic_type.__args__
+        union: tuple[Any, ...] = generic_type.__args__
 
         # Recursively match any type in the union
         return any(type_match(arg, t) for t in union)
@@ -140,7 +140,9 @@ def _resolve_type(annotation: Any) -> Any:
 
     # Try to resolve from the caller's frame globals
     # This handles forward references like "MyClass" or "OtherClass"
-    frame = sys._getframe(2)  # Go up two frames to get the actual caller
+    # Using sys._getframe is necessary here for introspection
+    # type: ignore[reportPrivateUsage]  # Go up two frames to get the actual caller
+    frame: FrameType | None = sys._getframe(2)
     while frame is not None:
         frame_globals = frame.f_globals
         frame_locals = frame.f_locals
