@@ -46,7 +46,7 @@ keywords = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://mocksafe.readthedocs.io/en/0.6/"
+Documentation = "https://mocksafe.readthedocs.io/en/0.10.0-beta/"
 Source = "https://github.com/dmayo3/mocksafe"
 
 [project.optional-dependencies]
@@ -91,6 +91,14 @@ push = false
 line-length = 100
 
 [tool.bumpver.file_patterns]
-"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']
+"pyproject.toml" = [
+    'current_version = "{version}"',
+    'version = "{version}"',
+    'Documentation = "https://mocksafe.readthedocs.io/en/{version}/"'
+]
 "mocksafe/__init__.py" = ['__version__ = "{version}"']
-"README.rst" = ['MockSafe v{version}']
+"README.rst" = [
+    'MockSafe v{version}',
+    '`Library Usage <https://mocksafe.readthedocs.io/en/{version}/usage.html>`_',
+    ':Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/{version}/>`_'
+]
