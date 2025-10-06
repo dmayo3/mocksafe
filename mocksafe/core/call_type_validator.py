@@ -2,6 +2,7 @@ from __future__ import annotations
 import builtins
 import contextlib
 import sys
+import warnings
 from inspect import Parameter, Signature
 from collections.abc import Callable, Sequence, Mapping
 from numbers import Number
@@ -84,6 +85,13 @@ def type_match(arg: Any, annotation: Any) -> bool:
     # we can't properly validate the type. Be lenient and accept the value.
     # This handles forward references that couldn't be resolved.
     if isinstance(expected_type, str):
+        warnings.warn(
+            f"Could not resolve forward reference '{expected_type}'. "
+            "Type validation will be skipped for this annotation. "
+            "Consider importing the type or using 'from __future__ import annotations'.",
+            category=UserWarning,
+            stacklevel=2,
+        )
         return True
 
     if _is_union(expected_type):
