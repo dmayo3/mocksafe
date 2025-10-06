@@ -60,11 +60,14 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
         matcher: CallMatcher,
         effects: list[T_co | BaseException],
     ) -> None:
-        self._validate_effects(effects)
-        self.add_effect(matcher, CannedEffects(effects))
+        # Create an immutable copy of effects to prevent external mutation
+        effects_copy = list(effects)
+        self._validate_effects(effects_copy)
+        self.add_effect(matcher, CannedEffects(effects_copy))
 
     def add_effect(self: MethodStub, matcher: CallMatcher, effect: ResultsProvider[T_co]) -> None:
-        self._stubs.insert(0, (matcher, effect))
+        # Create a new list with the effect prepended to maintain immutability principle
+        self._stubs = [(matcher, effect)] + self._stubs
 
     def _validate_effects(self: MethodStub, effects: list[T_co | BaseException]) -> None:
         # Runtime check in case static type checking allows an incompatible type
@@ -85,13 +88,17 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
 
 class CannedEffects(Generic[T_co]):
     def __init__(self: CannedEffects, effects: list[T_co]):
-        self._effects = effects
+        # Store as immutable tuple to prevent any mutation
+        self._effects = tuple(effects)
 
     def __call__(self: CannedEffects, *args, **kwargs) -> T_co:
         if len(self._effects) == 1:
             effect = self._effects[0]
         else:
-            effect = self._effects.pop(0)
+            # Convert back to list for mutation, then store as tuple again
+            effects_list = list(self._effects)
+            effect = effects_list.pop(0)
+            self._effects = tuple(effects_list)
 
         if isinstance(effect, BaseException):
             raise effect

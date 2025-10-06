@@ -166,6 +166,7 @@ class MatchCallStubber(Generic[T]):
         """
         Specify an ordered sequence of results and/or exceptions to be returned/raised.
         """
+        # Convert to list to create an immutable copy that can be safely stored
         self._method_mock.add_stub(self._matcher, list(side_effects))
 
 
@@ -234,6 +235,7 @@ class LastCallStubber(Generic[T]):
                 ".called_with(<different_method>)",
             )
 
+        # Convert to list to create an immutable copy that can be safely stored
         self._method_mock.stub_last_call(list(side_effects))
 
 
@@ -309,4 +311,9 @@ class PropertyStubber:
                 f" {value}.",
             )
 
-        self._mock_object._properties[prop_name] = value
+        # Create new properties dict to maintain immutability principle,
+        # use __dict__ to bypass __setattr__
+        self._mock_object.__dict__["_properties"] = {
+            **self._mock_object._properties,
+            prop_name: value,
+        }

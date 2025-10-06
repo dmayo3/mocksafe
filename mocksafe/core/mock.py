@@ -154,7 +154,8 @@ class SafeMock(Generic[T]):
 
     @property
     def mocked_methods(self: SafeMock) -> dict[MethodName, MethodMock]:
-        return self._mocks.copy()
+        # Return a copy to prevent external mutation
+        return dict(self._mocks)
 
     def reset(self: SafeMock) -> None:
         for mocked_method in self._mocks.values():
@@ -237,9 +238,12 @@ class SafeMock(Generic[T]):
             if return_annotation != signature.return_annotation:
                 signature = signature.replace(return_annotation=return_annotation)
 
-            self._mocks[attr_name] = MethodMock(
+            # Create new method mock and store with immutable approach
+            new_mock = MethodMock(
                 self._spec, str(self), attr_name, signature, is_class_method=is_class_method
             )
+            # Create new dict to maintain immutability principle, use __dict__ to bypass __setattr__
+            self.__dict__["_mocks"] = {**self._mocks, attr_name: new_mock}
 
         return self._mocks[attr_name]
 
@@ -266,6 +270,7 @@ class SafeMock(Generic[T]):
                 )
             prop.fset(prop, value)
         elif attr_defined or attrs_unknown:
+            # Use __dict__ direct assignment (unavoidable for attribute setting)
             self.__dict__[attr_name] = value
         else:
             raise AttributeError(
@@ -367,7 +372,7 @@ class MethodMock(CallRecorder, Generic[T]):
 
     @property
     def calls(self: MethodMock) -> list[Call]:
-        return self._spy._calls
+        return self._spy.calls
 
     def nth_call(self: MethodMock, n: int) -> Call:
         return self._spy.nth_call(n)

@@ -158,6 +158,7 @@ class MockCalls:
             >>> spy(mock_random.randint).all_calls
             [NamedCall(args=(), kwargs={'a': 1, 'b': 10}), NamedCall(args=...)]
         """
+        # Return a new list to prevent external mutation
         return [NamedCall(args, kwargs) for args, kwargs in self._call_recorder.calls]
 
 

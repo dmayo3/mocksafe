@@ -34,11 +34,11 @@ class MockProperty(property, CallRecorder, Generic[T]):
         The generic type must match the type returned from the
         property being mocked.
         """
-        self._calls: list[Call] = []
+        self._calls: tuple[Call, ...] = ()
         self._return_value: T = return_value
 
         def fget(instance: MockProperty) -> T:
-            instance._calls.append(((), {}))
+            instance._calls = instance._calls + (((), {}),)
             return instance._return_value
 
         def fset(instance: MockProperty, value: T) -> None:
@@ -88,18 +88,17 @@ class MockProperty(property, CallRecorder, Generic[T]):
 
     @property
     def calls(self: MockProperty) -> list[Call]:
-        return self._calls
+        # Convert internal immutable tuple to list for API compatibility
+        return list(self._calls)
 
     def nth_call(self: MockProperty, n: int) -> Call:
-        if not self.calls:
+        if not self._calls:
             raise ValueError(f"The mocked property {self.name} was not called.")
 
         try:
-            return self.calls[n]
+            return self._calls[n]
         except IndexError:
             raise ValueError(
-                (
-                    f"Mocked property {self.name}() was not called {n + 1} time(s). "
-                    f"The actual number of calls was {len(self.calls)}."
-                ),
+                f"Mocked property {self.name}() was not called {n + 1} time(s). "
+                f"The actual number of calls was {len(self._calls)}.",
             ) from None

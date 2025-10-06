@@ -36,7 +36,7 @@ class MethodSpy(CallRecorder, Generic[T_co]):
     ):
         self._name = name
         self._delegate = delegate
-        self._calls: list[Call] = []
+        self._calls: tuple[Call, ...] = ()
         self._signature = signature
 
     def __call__(self: MethodSpy, *args, **kwargs) -> T_co | None:
@@ -48,7 +48,9 @@ class MethodSpy(CallRecorder, Generic[T_co]):
         )
         validator.validate()
 
-        self._calls.append((tuple(args), kwargs.copy()))
+        # Store call with immutable args and kwargs copy, using tuple concatenation
+        call = (tuple(args), dict(kwargs))
+        self._calls = self._calls + (call,)
 
         return self._delegate(*args, **kwargs)
 
@@ -61,10 +63,15 @@ class MethodSpy(CallRecorder, Generic[T_co]):
 
     @property
     def calls(self: MethodSpy) -> list[Call]:
-        return self._calls
+        # Convert internal immutable tuple to list for API compatibility
+        return list(self._calls)
 
     def pop_call(self: MethodSpy) -> Call:
-        return self._calls.pop()
+        # Convert to list, pop, then convert back to tuple
+        calls_list = list(self._calls)
+        result = calls_list.pop()
+        self._calls = tuple(calls_list)
+        return result
 
     # pylint: disable=raise-missing-from
     def nth_call(self: MethodSpy, n: int) -> Call:
@@ -76,5 +83,5 @@ class MethodSpy(CallRecorder, Generic[T_co]):
 
             raise ValueError(
                 f"Mocked method {self._name}() was not called {n + 1} time(s). "
-                f"The actual number of calls was {len(self.calls)}.",
+                f"The actual number of calls was {len(self._calls)}.",
             )
