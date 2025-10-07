@@ -154,7 +154,7 @@ class SafeMock(Generic[T]):
 
     @property
     def mocked_methods(self: SafeMock) -> dict[MethodName, MethodMock]:
-        return self._mocks.copy()
+        return dict(self._mocks)
 
     def reset(self: SafeMock) -> None:
         for mocked_method in self._mocks.values():
@@ -237,9 +237,11 @@ class SafeMock(Generic[T]):
             if return_annotation != signature.return_annotation:
                 signature = signature.replace(return_annotation=return_annotation)
 
-            self._mocks[attr_name] = MethodMock(
+            # Use functional approach - create new dict instead of mutating
+            new_mock = MethodMock(
                 self._spec, str(self), attr_name, signature, is_class_method=is_class_method
             )
+            self.__dict__["_mocks"] = {**self._mocks, attr_name: new_mock}
 
         return self._mocks[attr_name]
 
@@ -367,7 +369,7 @@ class MethodMock(CallRecorder, Generic[T]):
 
     @property
     def calls(self: MethodMock) -> list[Call]:
-        return self._spy._calls
+        return self._spy.calls
 
     def nth_call(self: MethodMock, n: int) -> Call:
         return self._spy.nth_call(n)

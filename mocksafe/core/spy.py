@@ -36,7 +36,8 @@ class MethodSpy(CallRecorder, Generic[T_co]):
     ):
         self._name = name
         self._delegate = delegate
-        self._calls: list[Call] = []
+        # Use immutable tuple to encourage functional patterns
+        self._calls: tuple[Call, ...] = ()
         self._signature = signature
 
     def __call__(self: MethodSpy, *args, **kwargs) -> T_co | None:
@@ -48,7 +49,9 @@ class MethodSpy(CallRecorder, Generic[T_co]):
         )
         validator.validate()
 
-        self._calls.append((tuple(args), kwargs.copy()))
+        # Use functional concatenation instead of mutation
+        call = (tuple(args), dict(kwargs))
+        self._calls = self._calls + (call,)
 
         return self._delegate(*args, **kwargs)
 
@@ -61,10 +64,16 @@ class MethodSpy(CallRecorder, Generic[T_co]):
 
     @property
     def calls(self: MethodSpy) -> list[Call]:
-        return self._calls
+        # Return list for API compatibility
+        return list(self._calls)
 
     def pop_call(self: MethodSpy) -> Call:
-        return self._calls.pop()
+        # Use functional slicing instead of mutation
+        if not self._calls:
+            raise IndexError("pop from empty calls")
+        result = self._calls[-1]
+        self._calls = self._calls[:-1]
+        return result
 
     # pylint: disable=raise-missing-from
     def nth_call(self: MethodSpy, n: int) -> Call:
@@ -76,5 +85,5 @@ class MethodSpy(CallRecorder, Generic[T_co]):
 
             raise ValueError(
                 f"Mocked method {self._name}() was not called {n + 1} time(s). "
-                f"The actual number of calls was {len(self.calls)}.",
+                f"The actual number of calls was {len(self._calls)}.",
             )

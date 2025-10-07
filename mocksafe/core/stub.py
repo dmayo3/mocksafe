@@ -19,7 +19,8 @@ PRIMITIVES = [str, int, bool, float, dict, list, tuple, set]
 class MethodStub(Generic[T_co], Delegate[T_co]):
     def __init__(self: MethodStub, name: MethodName, result_type: type):
         self._name = name
-        self._stubs: list[tuple[CallMatcher, ResultsProvider[T_co]]] = []
+        # Start with immutable tuple to encourage functional patterns
+        self._stubs: tuple[tuple[CallMatcher, ResultsProvider[T_co]], ...] = ()
         self._result_type = result_type
 
     def __call__(self: MethodStub, *args, **kwargs) -> T_co | None:
@@ -64,7 +65,8 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
         self.add_effect(matcher, CannedEffects(effects))
 
     def add_effect(self: MethodStub, matcher: CallMatcher, effect: ResultsProvider[T_co]) -> None:
-        self._stubs.insert(0, (matcher, effect))
+        # Use functional concatenation instead of mutation
+        self._stubs = ((matcher, effect),) + self._stubs
 
     def _validate_effects(self: MethodStub, effects: list[T_co | BaseException]) -> None:
         # Runtime check in case static type checking allows an incompatible type
@@ -85,13 +87,16 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
 
 class CannedEffects(Generic[T_co]):
     def __init__(self: CannedEffects, effects: list[T_co]):
-        self._effects = effects
+        # Store as immutable tuple to encourage functional patterns
+        self._effects = tuple(effects)
 
     def __call__(self: CannedEffects, *args, **kwargs) -> T_co:
         if len(self._effects) == 1:
             effect = self._effects[0]
         else:
-            effect = self._effects.pop(0)
+            # Use functional slicing instead of mutation
+            effect = self._effects[0]
+            self._effects = self._effects[1:]
 
         if isinstance(effect, BaseException):
             raise effect

@@ -309,4 +309,8 @@ class PropertyStubber:
                 f" {value}.",
             )
 
-        self._mock_object._properties[prop_name] = value
+        # Use functional approach - create new dict instead of mutating
+        self._mock_object.__dict__["_properties"] = {
+            **self._mock_object._properties,
+            prop_name: value,
+        }
