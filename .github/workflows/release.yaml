@@ -46,7 +46,7 @@ jobs:
       - name: Build source and wheel distribution
         run: python -m build --sdist --wheel --outdir dist/
       - name: Upload distribution artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: dist
           path: dist
