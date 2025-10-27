@@ -446,4 +446,6 @@ def test_protocol_type_match_err():
     with pytest.raises(TypeError) as excinfo:
         type_match(Implementation(), ProtoType)
 
-    assert "The Protocol type must be annotated with @runtime_checkable." in str(excinfo.value)
+    assert "Suggestion: The Protocol type must be annotated with @runtime_checkable" in str(
+        excinfo.value
+    )

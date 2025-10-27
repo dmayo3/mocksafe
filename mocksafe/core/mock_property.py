@@ -1,6 +1,7 @@
 from __future__ import annotations
 from mocksafe.core.spy import CallRecorder, Generic, TypeVar
 from mocksafe.core.custom_types import MethodName, Call
+from mocksafe.exceptions import MockTypeError, MockCallError
 
 T = TypeVar("T")
 
@@ -76,9 +77,12 @@ class MockProperty(property, CallRecorder, Generic[T]):
     @return_value.setter
     def return_value(self: MockProperty, value: T) -> None:
         if not isinstance(value, self.value_type):
-            raise TypeError(
+            raise MockTypeError(
                 f"Return value '{value}' is incompatible with the MockProperty type"
-                f" {self.value_type}"
+                f" {self.value_type}",
+                expected_type=self.value_type,
+                actual_type=type(value),
+                suggestion=f"The return value must be of type {self.value_type.__name__}",
             )
         self._return_value = value
 
@@ -92,14 +96,20 @@ class MockProperty(property, CallRecorder, Generic[T]):
 
     def nth_call(self: MockProperty, n: int) -> Call:
         if not self.calls:
-            raise ValueError(f"The mocked property {self.name} was not called.")
+            raise MockCallError(
+                f"The mocked property {self.name} was not called",
+                expected_calls=1,
+                actual_calls=0,
+                method_name=str(self.name),
+            )
 
         try:
             return self.calls[n]
         except IndexError:
-            raise ValueError(
-                (
-                    f"Mocked property {self.name}() was not called {n + 1} time(s). "
-                    f"The actual number of calls was {len(self.calls)}."
-                ),
+            raise MockCallError(
+                f"Mocked property {self.name}() was not called {n + 1} time(s). "
+                f"The actual number of calls was {len(self.calls)}",
+                expected_calls=n + 1,
+                actual_calls=len(self.calls),
+                method_name=str(self.name),
             ) from None

@@ -30,6 +30,15 @@ from mocksafe.apis.bdd import (
     that,
     spy,
 )
+from mocksafe.exceptions import (
+    MockSafeError,
+    MockTypeError,
+    MockSetupError,
+    MockUsageError,
+    MockCallError,
+    StubError,
+    PropertyMockError,
+)
 
 __version__ = "0.10.0-beta"
 
@@ -42,4 +51,12 @@ __all__ = [
     "stub",
     "that",
     "spy",
+    # Exception classes
+    "MockSafeError",
+    "MockTypeError",
+    "MockSetupError",
+    "MockUsageError",
+    "MockCallError",
+    "StubError",
+    "PropertyMockError",
 ]

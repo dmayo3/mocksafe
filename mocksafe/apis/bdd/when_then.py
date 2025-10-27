@@ -7,6 +7,12 @@ from mocksafe.core.mock_property import MockProperty
 from mocksafe.core.mock import SafeMock, MethodMock, ResultsProvider
 from mocksafe.core.call_type_validator import type_match
 from mocksafe.core.call_matchers import AnyCallMatcher, CustomCallMatcher
+from mocksafe.exceptions import (
+    MockSetupError,
+    MockTypeError,
+    PropertyMockError,
+    MockCallError,
+)
 
 T = TypeVar("T")
 ANY_CALL: CallMatcher = AnyCallMatcher()
@@ -32,7 +38,10 @@ def when(mock_callable: Callable[..., T]) -> WhenStubber[T]:
         mock_callable = mock_callable.get_mocked_attr("__call__")
 
     if not isinstance(mock_callable, MethodMock):
-        raise ValueError(f"Not a SafeMocked method: {mock_callable} ({type(mock_callable)})")
+        raise MockSetupError(
+            f"Not a SafeMocked method: {mock_callable} ({type(mock_callable)})",
+            suggestion="Pass a method from a mocked object, e.g., when(mock_obj.method_name)",
+        )
 
     return WhenStubber(mock_callable)
 
@@ -48,7 +57,11 @@ def stub(mock_object: Any) -> PropertyStubber:
     See also: :class:`mocksafe.MockProperty`
     """
     if not isinstance(mock_object, SafeMock):
-        raise ValueError(f"Not a SafeMocked object: {mock_object}")
+        raise MockSetupError(
+            f"Not a SafeMocked object: {mock_object}",
+            mock_object=mock_object,
+            suggestion="Ensure you're passing an object created with mock() or mock_module()",
+        )
     return PropertyStubber(mock_object)
 
 
@@ -228,10 +241,16 @@ class LastCallStubber(Generic[T]):
 
     def use_side_effects(self: LastCallStubber, *side_effects: T | BaseException) -> None:
         if not self._method_mock.calls:
-            raise ValueError(
+            raise MockCallError(
                 "Mocked methods do not match: "
                 f"when({self._method_mock.full_name})"
                 ".called_with(<different_method>)",
+                method_name=str(self._method_mock.full_name),
+                actual_calls=0,
+                suggestion=(
+                    "The called_with() arguments don't match any actual calls. "
+                    "Check that the method was called with the expected arguments"
+                ),
             )
 
         self._method_mock.stub_last_call(list(side_effects))
@@ -284,29 +303,40 @@ class PropertyStubber:
         Magic method for setting :class:`mocksafe.MockProperty` objects
         as class attributes on the mocked object.
 
-        :raise AttributeError: if the attribute being set doesn't exist on the
-                               original object
-        :raise TypeError: if the :class:`mocksafe.MockProperty` type doesn't
-                          match the type returned by the real property
+        :raise PropertyMockError: if the attribute being set doesn't exist on the
+                                  original object or isn't a property
+        :raise MockTypeError: if the :class:`mocksafe.MockProperty` type doesn't
+                              match the type returned by the real property
         """
         prop_attr = self._mock_object.get_original_attr(prop_name)
         try:
             if cast(property, prop_attr).fget is None:
                 raise TypeError
         except (AttributeError, TypeError):
-            raise TypeError(
+            raise PropertyMockError(
                 f"{self._mock_object}.{prop_name} attribute is not a getter "
-                f"property. Actual attribute: {prop_attr} ({type(prop_attr)}).",
+                f"property. Actual attribute: {prop_attr} ({type(prop_attr)})",
+                property_name=prop_name,
+                suggestion=(
+                    f"'{prop_name}' must be a property decorated with @property. "
+                    "If it's a regular attribute, you can set it directly on the mock object"
+                ),
             ) from None
 
         sig = inspect.signature(prop_attr.fget)
         has_type = sig.return_annotation != inspect.Signature.empty
 
         if has_type and not type_match(value.return_value, sig.return_annotation):
-            raise TypeError(
+            raise MockTypeError(
                 f"{self._mock_object}.{prop_name} property has return type"
                 f" {sig.return_annotation}, therefore it can't be stubbed with"
-                f" {value}.",
+                f" {value}",
+                expected_type=sig.return_annotation,
+                actual_type=type(value.return_value),
+                suggestion=(
+                    "Use a MockProperty with a value matching the expected type"
+                    f" {sig.return_annotation}"
+                ),
             )
 
         self._mock_object._properties[prop_name] = value

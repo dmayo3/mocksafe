@@ -8,6 +8,7 @@ from mocksafe.core.mock_property import MockProperty
 from mocksafe.core.spy import MethodSpy, CallRecorder
 from mocksafe.core.stub import MethodStub, ResultsProvider
 from mocksafe.core.call_matchers import ExactCallMatcher
+from mocksafe.exceptions import MockSetupError, MockTypeError, MockUsageError
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -108,7 +109,11 @@ def mock_reset(mock_object: Any) -> None:
     Reset a mock object's configured stubbing and recorded calls.
     """
     if not isinstance(mock_object, SafeMock):
-        raise ValueError(f"Not a SafeMocked object: {mock_object}")
+        raise MockSetupError(
+            f"Not a SafeMocked object: {mock_object}",
+            mock_object=mock_object,
+            suggestion="Ensure you're passing an object created with mock() or mock_module()",
+        )
     mock_object.reset()
 
 
@@ -182,7 +187,13 @@ class SafeMock(Generic[T]):
         try:
             mocked_callable_method = self.get_mocked_attr("__call__")
         except AttributeError as err:
-            raise TypeError(f"{self} object is not callable") from err
+            raise MockTypeError(
+                f"{self} object is not callable",
+                suggestion=(
+                    "Only mock objects with a __call__ method can be called directly. "
+                    "Did you mean to call a method on this mock instead?"
+                ),
+            ) from err
 
         return mocked_callable_method(*args, **kwds)
 
@@ -197,8 +208,13 @@ class SafeMock(Generic[T]):
             if not prop or not prop.fget:
                 # TODO: implement support for automatic mocking, like we do for
                 # MethodMock below
-                raise ValueError(
+                raise MockUsageError(
                     f"Property: {self}.{attr_name} needs to be mocked before use",
+                    method_name=attr_name,
+                    suggestion=(
+                        f"Use stub({self}).{attr_name} = MockProperty(...) to set up the property"
+                        " mock first"
+                    ),
                 )
             return prop.fget(prop)
 
@@ -261,8 +277,13 @@ class SafeMock(Generic[T]):
         if isinstance(original_attr, property):
             prop = self._properties.get(attr_name)
             if not prop or not prop.fset:
-                raise ValueError(
-                    f"Property setter: {self}.{attr_name} needs to be stubbed before use"
+                raise MockUsageError(
+                    f"Property setter: {self}.{attr_name} needs to be stubbed before use",
+                    method_name=attr_name,
+                    suggestion=(
+                        "Property setters must be explicitly stubbed. Use"
+                        f" stub({self}).{attr_name} = MockProperty(...) first"
+                    ),
                 )
             prop.fset(prop, value)
         elif attr_defined or attrs_unknown:

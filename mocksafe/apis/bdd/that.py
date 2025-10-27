@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import NamedTuple, Any
 from mocksafe.core.custom_types import Call
 from mocksafe.core.spy import CallRecorder
+from mocksafe.exceptions import MockSetupError
 
 Args = tuple
 
@@ -21,8 +22,9 @@ def that(mocked: Any) -> MockCalls:
         MockCalls[random;num_calls=0]
     """
     if not isinstance(mocked, CallRecorder):
-        raise TypeError(
-            f"Expected a mocked method/function/property but got '{mocked}' ({type(mocked)})"
+        raise MockSetupError(
+            f"Expected a mocked method/function/property but got '{mocked}' ({type(mocked)})",
+            suggestion="Pass a method from a mocked object, e.g., that(mock_obj.method_name)",
         )
     return MockCalls(mocked)
 
