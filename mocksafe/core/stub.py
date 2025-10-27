@@ -4,6 +4,7 @@ from typing import Generic, Protocol, TypeVar
 from mocksafe.core.custom_types import MethodName, CallMatcher
 from mocksafe.core.call_type_validator import type_match
 from mocksafe.core.spy import Delegate
+from mocksafe.exceptions import MockTypeError
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -76,10 +77,17 @@ class MethodStub(Generic[T_co], Delegate[T_co]):
             if isinstance(e, BaseException):
                 continue
             if not type_match(e, self._result_type):
-                raise TypeError(
+                raise MockTypeError(
                     f"Cannot use stub result {e} ({type(e)}) with the mocked method"
                     f" {self._name}(), the expected return type is:"
-                    f" {self._result_type}.",
+                    f" {self._result_type}",
+                    expected_type=self._result_type,
+                    actual_type=type(e),
+                    suggestion=(
+                        "The stubbed return value must match the expected type"
+                        f" {self._result_type}. Use a value of the correct type or update the"
+                        " method signature"
+                    ),
                 )
 
 

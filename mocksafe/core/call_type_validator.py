@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 from types import FrameType, GenericAlias, UnionType
 from typing import Any, Union, cast, get_origin
 from mocksafe.core.custom_types import MethodName
+from mocksafe.exceptions import MockTypeError
 
 
 class CallTypeValidator:
@@ -52,7 +53,13 @@ class CallTypeValidator:
             error_msg = str(e).replace("missing", f"{self._method_name}() missing")
             error_msg = error_msg.replace("got", f"{self._method_name}() got")
             error_msg = error_msg.replace("takes", f"{self._method_name}() takes")
-            raise TypeError(error_msg) from None
+
+            # Determine if this is a parameter count issue or type issue
+            suggestion = None
+            if "missing" in str(e) or "takes" in str(e) or "got" in str(e):
+                suggestion = "Check the number and names of arguments passed to the mocked method"
+
+            raise MockTypeError(error_msg, suggestion=suggestion) from None
 
     def _validate_type(self: CallTypeValidator, param: Parameter, value: Any) -> None:
         """Validate a single parameter's type."""
@@ -71,10 +78,15 @@ class CallTypeValidator:
     def _validate_single_type(self: CallTypeValidator, param: Parameter, arg: Any) -> None:
         """Validate that a single argument matches the parameter's type annotation."""
         if param.annotation != Parameter.empty and not type_match(arg, param.annotation):
-            raise TypeError(
+            raise MockTypeError(
                 f"Invalid type passed to mocked method {self._method_name}() for "
-                f"parameter: '{param}'. Actual argument passed was: "
-                f"{arg} ({type(arg)})."
+                f"parameter: '{param.name}'. Actual argument passed was: "
+                f"{arg} ({type(arg)})",
+                expected_type=param.annotation,
+                actual_type=type(arg),
+                suggestion=(
+                    f"Pass an argument of type {param.annotation} for parameter '{param.name}'"
+                ),
             )
 
 
@@ -114,10 +126,12 @@ def type_match(arg: Any, annotation: Any) -> bool:
         return _coercable_type_match(arg, expected_type)
     except TypeError as err:
         if "@runtime_checkable" in str(err):
-            raise TypeError(
+            raise MockTypeError(
                 f"Could not validate that argument '{arg}' ({type(arg)}) is compatible"
-                f" with the expected Protocol type: {expected_type}. The Protocol type"
-                " must be annotated with @runtime_checkable."
+                f" with the expected Protocol type: {expected_type}",
+                expected_type=expected_type,
+                actual_type=type(arg),
+                suggestion="The Protocol type must be annotated with @runtime_checkable",
             ) from err
 
         gh_issue_params = {

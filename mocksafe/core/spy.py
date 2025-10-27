@@ -3,6 +3,7 @@ from inspect import Signature
 from typing import Generic, TypeVar, Protocol, runtime_checkable
 from mocksafe.core.custom_types import MethodName, Call
 from mocksafe.core.call_type_validator import CallTypeValidator
+from mocksafe.exceptions import MockCallError
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -72,9 +73,17 @@ class MethodSpy(CallRecorder, Generic[T_co]):
             return self._calls[n]
         except IndexError:
             if not self._calls:
-                raise ValueError(f"The mocked method {self._name}() was not called.")
+                raise MockCallError(
+                    f"The mocked method {self._name}() was not called",
+                    expected_calls=1,
+                    actual_calls=0,
+                    method_name=str(self._name),
+                )
 
-            raise ValueError(
+            raise MockCallError(
                 f"Mocked method {self._name}() was not called {n + 1} time(s). "
-                f"The actual number of calls was {len(self.calls)}.",
+                f"The actual number of calls was {len(self.calls)}",
+                expected_calls=n + 1,
+                actual_calls=len(self.calls),
+                method_name=str(self._name),
             )
