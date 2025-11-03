@@ -11,3 +11,4 @@ build
 .ropeproject
 .pytest_cache
 .mypy_cache
+RELEASE_AUTOMATION_PLAN.md

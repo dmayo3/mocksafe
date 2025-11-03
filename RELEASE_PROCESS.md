@@ -2,6 +2,42 @@
 
 This document outlines the complete release process for MockSafe.
 
+## Automated Release Process (Recommended)
+
+As of December 2024, MockSafe uses an automated GitHub Actions workflow to streamline the release process.
+
+### Quick Start
+
+1. **Trigger the Release Workflow:**
+   ```bash
+   gh workflow run release.yaml --field bump_type=<patch|minor|major|beta|rc>
+   # OR for custom version:
+   gh workflow run release.yaml --field custom_version=X.Y.Z
+   ```
+
+2. **Review and Merge the PR:**
+   - The workflow automatically creates a release PR
+   - Review the version changes
+   - Ensure all CI checks pass
+   - Approve and merge the PR
+
+3. **Continue with Manual Steps:**
+   - After PR merge, continue with [Step 10](#4-tagging-and-release) of the manual process
+   - Tag creation and deployment still require manual steps
+
+### Automated Workflow Details
+
+The automated workflow handles:
+- ✅ Version bumping using `bumpver`
+- ✅ Creating a release branch
+- ✅ Committing version changes
+- ✅ Creating a pull request with proper labels
+- ✅ Providing a release checklist in the PR
+
+## Manual Release Process (Fallback)
+
+If the automated workflow is unavailable or for special cases, follow the manual process below.
+
 ## Prerequisites
 
 Before starting a release, ensure you have:
@@ -11,9 +47,11 @@ Before starting a release, ensure you have:
 - [ ] All planned features and fixes merged into `main`
 - [ ] Access to ReadTheDocs admin panel
 
-## Release Process Steps
+## Manual Release Process Steps
 
 ### 1. Preparation
+
+**Note:** Steps 1-9 are now automated by the Release Process workflow. Skip to [Step 10](#4-tagging-and-release) if using automation.
 
 1. **Create a fresh branch from latest origin/main:**
    ```bash
@@ -72,15 +110,15 @@ Before starting a release, ensure you have:
     git push origin X.Y.Z
     ```
 
-11. **Trigger release workflow on the tag:**
+11. **Trigger publish workflow on the tag:**
     ```bash
-    gh workflow run release.yaml --ref X.Y.Z
+    gh workflow run publish.yaml --ref X.Y.Z
     ```
 
 12. **Monitor and approve deployment:**
     ```bash
     # Check workflow status
-    gh run list --workflow=release.yaml --limit 3
+    gh run list --workflow=publish.yaml --limit 3
 
     # View specific run
     gh run view [RUN-ID]
@@ -156,7 +194,7 @@ For reference, the environment IDs used in the approval process:
 ### Branch Protection Issues
 
 If you encounter "Branch 'main' is not allowed to deploy to pypi" errors:
-- Ensure you're running the release workflow against a **tag**, not the main branch
+- Ensure you're running the publish workflow against a **tag**, not the main branch
 - Use `--ref X.Y.Z-beta` when triggering the workflow
 
 ### Pre-commit Hook Failures
@@ -180,9 +218,16 @@ Future improvements should be tracked as GitHub Issues with appropriate labels a
 
 Potential areas for improvement include workflow automation, documentation updates, and tooling enhancements.
 
+## Workflow Files Reference
+
+- **`.github/workflows/release.yaml`**: Automated release process workflow (version bump & PR creation)
+- **`.github/workflows/publish.yaml`**: Package publishing workflow (formerly release.yaml)
+- **`.github/workflows/mocksafe.yml`**: CI/CD checks for PRs
+
 ## Release History
 
 - **v0.10.0-beta**: Released on 2025-09-16, first release using this documented process
+- **TBD**: First release using automated workflow
 
 ---
 
