@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # version-bump.sh - Handle version bumping for MockSafe releases
-# Usage: ./version-bump.sh <bump_type> [custom_version]
+# Usage: ./version-bump.sh <bump_type> <prerelease_type> [custom_version]
 
 # Color codes for output
 RED='\033[0;31m'
@@ -36,13 +36,29 @@ validate_version() {
 
 # Parse arguments
 BUMP_TYPE="${1:-}"
-CUSTOM_VERSION="${2:-}"
+PRERELEASE_TYPE="${2:-none}"
+CUSTOM_VERSION="${3:-}"
 
 if [[ -z "$BUMP_TYPE" ]]; then
-    log_error "Usage: $0 <bump_type> [custom_version]"
-    log_error "bump_type: patch, minor, major, beta, rc"
+    log_error "Usage: $0 <bump_type> <prerelease_type> [custom_version]"
+    log_error "bump_type: patch, minor, major"
+    log_error "prerelease_type: none, beta, rc"
     exit 1
 fi
+
+# Get current version from pyproject.toml
+log_info "Getting current version..."
+CURRENT_VERSION=$(python -c "
+import tomllib
+with open('pyproject.toml', 'rb') as f:
+    data = tomllib.load(f)
+    print(data['tool']['bumpver']['current_version'])
+" 2>/dev/null) || {
+    log_error "Failed to read current version from pyproject.toml"
+    exit 1
+}
+
+log_info "Current version: $CURRENT_VERSION"
 
 # Determine the new version
 if [[ -n "$CUSTOM_VERSION" ]]; then
@@ -55,38 +71,52 @@ if [[ -n "$CUSTOM_VERSION" ]]; then
 
     NEW_VERSION="$CUSTOM_VERSION"
 else
-    log_info "Determining version for bump type: $BUMP_TYPE"
+    log_info "Calculating version for bump type: $BUMP_TYPE with prerelease: $PRERELEASE_TYPE"
 
-    # Build bumpver arguments based on bump type
+    # Parse current version (remove any existing prerelease tags)
+    BASE_VERSION="${CURRENT_VERSION%%-*}"
+    IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+
+    # Validate bump type
     case "$BUMP_TYPE" in
-        major|minor|patch)
-            BUMP_ARGS="--$BUMP_TYPE"
+        major)
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
             ;;
-        beta|rc)
-            BUMP_ARGS="--tag $BUMP_TYPE"
+        minor)
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$((MINOR + 1))
+            NEW_PATCH=0
+            ;;
+        patch)
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$((PATCH + 1))
             ;;
         *)
             log_error "Invalid bump type: $BUMP_TYPE"
-            log_error "Valid types: patch, minor, major, beta, rc"
+            log_error "Valid types: patch, minor, major"
             exit 1
             ;;
     esac
 
-    # Run bumpver dry run to get new version
-    log_info "Running bumpver dry run..."
-    DRY_RUN_OUTPUT=$(bumpver update $BUMP_ARGS --dry --no-commit 2>&1) || {
-        log_error "Failed to determine new version"
-        echo "$DRY_RUN_OUTPUT" >&2
-        exit 1
-    }
+    # Build base version
+    NEW_VERSION="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
 
-    # Extract new version from output
-    NEW_VERSION=$(echo "$DRY_RUN_OUTPUT" | grep -E "^New Version:" | sed 's/New Version:[[:space:]]*//')
-
-    if [[ -z "$NEW_VERSION" ]]; then
-        log_error "Could not extract new version from bumpver output"
-        echo "$DRY_RUN_OUTPUT" >&2
-        exit 1
+    # Add prerelease suffix if specified
+    if [[ "$PRERELEASE_TYPE" != "none" ]]; then
+        case "$PRERELEASE_TYPE" in
+            beta|rc)
+                NEW_VERSION="${NEW_VERSION}-${PRERELEASE_TYPE}"
+                log_info "Adding $PRERELEASE_TYPE prerelease tag"
+                ;;
+            *)
+                log_error "Invalid prerelease type: $PRERELEASE_TYPE"
+                log_error "Valid types: none, beta, rc"
+                exit 1
+                ;;
+        esac
     fi
 
     log_info "Calculated new version: $NEW_VERSION"

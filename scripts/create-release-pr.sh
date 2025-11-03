@@ -5,6 +5,7 @@ set -euo pipefail
 # This script expects the following environment variables:
 # - VERSION: The new version number
 # - BUMP_TYPE: The type of version bump
+# - PRERELEASE_TYPE: The type of prerelease (none, beta, rc)
 # - CUSTOM_VERSION: Custom version if provided (optional)
 # - GH_TOKEN: GitHub token for authentication
 
@@ -32,6 +33,10 @@ if [[ -z "${BUMP_TYPE:-}" ]]; then
     exit 1
 fi
 
+if [[ -z "${PRERELEASE_TYPE:-}" ]]; then
+    PRERELEASE_TYPE="none"
+fi
+
 if [[ -z "${GH_TOKEN:-}" ]]; then
     log_error "GH_TOKEN environment variable is required"
     exit 1
@@ -39,6 +44,7 @@ fi
 
 # Set defaults for optional variables
 CUSTOM_VERSION="${CUSTOM_VERSION:-N/A}"
+PRERELEASE_TYPE="${PRERELEASE_TYPE:-none}"
 BRANCH_NAME="release-v${VERSION}"
 
 # Determine if this is a prerelease
@@ -58,6 +64,7 @@ This PR was automatically created by the Release Process workflow.
 
 ### Version Bump Details
 - **Bump Type:** ${BUMP_TYPE}
+- **Prerelease Type:** ${PRERELEASE_TYPE}
 - **Custom Version:** ${CUSTOM_VERSION}
 - **New Version:** ${VERSION}
 
@@ -78,7 +85,7 @@ This PR was automatically created by the Release Process workflow.
 ENDOFBODY
 
 # Substitute variables safely using envsubst
-export VERSION BUMP_TYPE CUSTOM_VERSION
+export VERSION BUMP_TYPE PRERELEASE_TYPE CUSTOM_VERSION
 envsubst < "$PR_BODY_FILE" > "${PR_BODY_FILE}.tmp"
 mv "${PR_BODY_FILE}.tmp" "$PR_BODY_FILE"
 

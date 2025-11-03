@@ -10,8 +10,13 @@ As of December 2024, MockSafe uses an automated GitHub Actions workflow to strea
 
 1. **Trigger the Release Workflow:**
    ```bash
-   gh workflow run release.yaml --field bump_type=<patch|minor|major|beta|rc>
-   # OR for custom version:
+   # For standard releases:
+   gh workflow run release.yaml --field bump_type=<patch|minor|major>
+
+   # For prerelease versions:
+   gh workflow run release.yaml --field bump_type=<patch|minor|major> --field prerelease_type=<beta|rc>
+
+   # For custom version:
    gh workflow run release.yaml --field custom_version=X.Y.Z
    ```
 
@@ -33,6 +38,16 @@ The automated workflow handles:
 - ✅ Committing version changes
 - ✅ Creating a pull request with proper labels
 - ✅ Providing a release checklist in the PR
+
+**Version Bump Options:**
+- **bump_type**: `patch`, `minor`, or `major` (required)
+- **prerelease_type**: `none`, `beta`, or `rc` (optional, defaults to `none`)
+- **custom_version**: Override with specific version string (optional)
+
+The bump type and prerelease type are orthogonal, allowing combinations like:
+- `bump_type=minor` → 1.2.0 → 1.3.0
+- `bump_type=minor` + `prerelease_type=beta` → 1.2.0 → 1.3.0-beta
+- `bump_type=patch` + `prerelease_type=rc` → 1.2.0 → 1.2.1-rc
 
 ## Manual Release Process (Fallback)
 

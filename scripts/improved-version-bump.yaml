@@ -1,0 +1,245 @@
+name: Release Process (Improved)
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: "patch"
+
+      prerelease_type:
+        description: "Prerelease type (optional)"
+        required: false
+        type: choice
+        options:
+          - none
+          - alpha
+          - beta
+          - rc
+        default: "none"
+
+      prerelease_number:
+        description: "Prerelease number (e.g., 1 for beta.1)"
+        required: false
+        type: string
+        default: ""
+
+      custom_version:
+        description: "Custom version (overrides all other options)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-release-pr:
+    name: Create Release PR
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      pr_number: ${{ steps.pr.outputs.pr_number }}
+      pr_url: ${{ steps.pr.outputs.pr_url }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bumpver
+
+      - name: Calculate Version
+        id: calculate
+        run: |
+          # Get current version
+          CURRENT_VERSION=$(python -c "import tomllib; import sys; \
+            with open('pyproject.toml', 'rb') as f: \
+              data = tomllib.load(f); \
+              print(data['tool']['bumpver']['current_version'])")
+
+          echo "Current version: $CURRENT_VERSION"
+
+          # If custom version is provided, use it
+          if [[ -n "${{ inputs.custom_version }}" ]]; then
+            NEW_VERSION="${{ inputs.custom_version }}"
+          else
+            # Parse current version
+            IFS='.' read -r MAJOR MINOR PATCH <<< "${CURRENT_VERSION%%-*}"
+
+            # Calculate base version based on bump type
+            case "${{ inputs.bump_type }}" in
+              major)
+                NEW_MAJOR=$((MAJOR + 1))
+                NEW_MINOR=0
+                NEW_PATCH=0
+                ;;
+              minor)
+                NEW_MAJOR=$MAJOR
+                NEW_MINOR=$((MINOR + 1))
+                NEW_PATCH=0
+                ;;
+              patch)
+                NEW_MAJOR=$MAJOR
+                NEW_MINOR=$MINOR
+                NEW_PATCH=$((PATCH + 1))
+                ;;
+            esac
+
+            NEW_VERSION="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
+
+            # Add prerelease suffix if specified
+            if [[ "${{ inputs.prerelease_type }}" != "none" ]]; then
+              PRERELEASE_SUFFIX="${{ inputs.prerelease_type }}"
+              if [[ -n "${{ inputs.prerelease_number }}" ]]; then
+                PRERELEASE_SUFFIX="${PRERELEASE_SUFFIX}.${{ inputs.prerelease_number }}"
+              fi
+              NEW_VERSION="${NEW_VERSION}-${PRERELEASE_SUFFIX}"
+            fi
+          fi
+
+          echo "New version: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "branch=release-v${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Run Version Bump
+        id: bump
+        env:
+          VERSION: ${{ steps.calculate.outputs.version }}
+          BRANCH: ${{ steps.calculate.outputs.branch }}
+        run: |
+          # Create release branch
+          git checkout -b "$BRANCH"
+
+          # Run bumpver with the calculated version
+          bumpver update --new-version "$VERSION" --no-fetch
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit and push
+          git add -A
+          git commit -m "chore: bump version to $VERSION"
+          git push origin "$BRANCH"
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          BRANCH="${{ steps.bump.outputs.branch }}"
+
+          # Determine PR labels
+          LABELS="release"
+          if [[ "$VERSION" == *"-"* ]]; then
+            LABELS="$LABELS,prerelease"
+          fi
+
+          # Create PR body
+          PR_BODY=$(cat <<EOF
+          ## 🚀 Release v${VERSION}
+
+          This PR was automatically created by the Release Process workflow.
+
+          ### Version Bump Details
+          - **Bump Type:** ${{ inputs.bump_type }}
+          - **Prerelease Type:** ${{ inputs.prerelease_type }}
+          - **Prerelease Number:** ${{ inputs.prerelease_number || 'N/A' }}
+          - **Custom Version:** ${{ inputs.custom_version || 'N/A' }}
+          - **New Version:** ${VERSION}
+
+          ### Version Components
+          - Base version bump: ${{ inputs.bump_type }}
+          - Prerelease modifier: ${{ inputs.prerelease_type != 'none' && inputs.prerelease_type || 'none' }}
+
+          ### Next Steps
+          1. Review the version changes in the Files tab
+          2. Ensure all CI checks pass
+          3. Approve and merge this PR
+          4. After merge, create tag and trigger deployment
+
+          ### Release Checklist
+          - [ ] Version bump looks correct
+          - [ ] All tests passing
+          - [ ] Documentation up to date
+          - [ ] Breaking changes documented (if any)
+          - [ ] Prerelease testing completed (if applicable)
+
+          ---
+          *Automated by GitHub Actions* 🤖
+          EOF
+          )
+
+          # Create the PR
+          PR_URL=$(gh pr create \
+            --title "Release v${VERSION}" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH" \
+            --label "$LABELS" \
+            --repo "${{ github.repository }}")
+
+          # Extract PR number from URL
+          PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          # 📦 Release PR Created
+
+          ## Version Information
+          - **New Version:** \`${{ steps.bump.outputs.version }}\`
+          - **Bump Type:** ${{ inputs.bump_type }}
+          - **Prerelease Type:** ${{ inputs.prerelease_type }}
+          - **Custom Version:** ${{ inputs.custom_version || 'N/A' }}
+
+          ## Version Calculation
+          This version was calculated by:
+          1. Taking the ${{ inputs.bump_type }} bump of the current version
+          2. ${PRERELEASE_NOTE}
+
+          ## Pull Request
+          - **PR Number:** #${{ steps.pr.outputs.pr_number }}
+          - **PR URL:** ${{ steps.pr.outputs.pr_url }}
+
+          ## Next Steps
+          1. Review and approve the PR
+          2. Merge to trigger tag creation and deployment
+
+          ---
+          *The release process will continue automatically after the PR is merged.*
+          EOF
+
+          # Add prerelease note dynamically
+          if [[ "${{ inputs.prerelease_type }}" != "none" ]]; then
+            PRERELEASE_NOTE="Adding ${{ inputs.prerelease_type }} prerelease suffix"
+            if [[ -n "${{ inputs.prerelease_number }}" ]]; then
+              PRERELEASE_NOTE="$PRERELEASE_NOTE with number ${{ inputs.prerelease_number }}"
+            fi
+          else
+            PRERELEASE_NOTE="No prerelease suffix (stable release)"
+          fi
+
+          sed -i "s/\${PRERELEASE_NOTE}/$PRERELEASE_NOTE/" $GITHUB_STEP_SUMMARY
