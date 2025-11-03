@@ -53,10 +53,10 @@ jobs:
           BUMP_TYPE: ${{ inputs.bump_type }}
           CUSTOM_VERSION: ${{ inputs.custom_version }}
         run: |
-          chmod +x .github/scripts/version-bump.sh
+          chmod +x scripts/version-bump.sh
 
           # Run script and capture outputs
-          OUTPUT=$(.github/scripts/version-bump.sh "$BUMP_TYPE" "$CUSTOM_VERSION")
+          OUTPUT=$(scripts/version-bump.sh "$BUMP_TYPE" "$CUSTOM_VERSION")
 
           # Extract version and branch from output
           VERSION=$(echo "$OUTPUT" | grep "^version=" | cut -d= -f2)
@@ -74,10 +74,10 @@ jobs:
           BUMP_TYPE: ${{ inputs.bump_type }}
           CUSTOM_VERSION: ${{ inputs.custom_version }}
         run: |
-          chmod +x .github/scripts/create-release-pr.sh
+          chmod +x scripts/create-release-pr.sh
 
           # Run script and capture outputs
-          OUTPUT=$(.github/scripts/create-release-pr.sh)
+          OUTPUT=$(scripts/create-release-pr.sh)
 
           # Extract PR URL and number from output
           PR_URL=$(echo "$OUTPUT" | grep "^pr_url=" | cut -d= -f2)
