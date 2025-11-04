@@ -8,12 +8,14 @@ CUSTOM_VERSION="${3:-}"
 if [[ -n "$CUSTOM_VERSION" ]]; then
     NEW_VERSION="$CUSTOM_VERSION"
 else
-    BUMP_ARGS="--$BUMP_TYPE"
-    [[ "$PRERELEASE_TYPE" != "none" ]] && BUMP_ARGS="$BUMP_ARGS --tag $PRERELEASE_TYPE"
+    # bumpver handles prerelease versions automatically
+    # 0.10.0-beta + --minor = 0.11.0-beta
+    NEW_VERSION=$(bumpver update --$BUMP_TYPE --dry --no-commit 2>&1 | grep "^INFO.*New Version:" | sed 's/.*New Version: //')
 
-    NEW_VERSION=$(bumpver update $BUMP_ARGS --dry --no-commit 2>&1 |
-                  grep "^New Version:" |
-                  sed 's/New Version:[[:space:]]*//')
+    # If adding a new prerelease tag to a stable version
+    if [[ "$PRERELEASE_TYPE" != "none" ]] && [[ "$NEW_VERSION" != *"-"* ]]; then
+        NEW_VERSION="${NEW_VERSION}-${PRERELEASE_TYPE}"
+    fi
 fi
 
 echo "version=$NEW_VERSION"
@@ -21,11 +23,7 @@ echo "version=$NEW_VERSION"
 BRANCH_NAME="release-v$NEW_VERSION"
 git checkout -b "$BRANCH_NAME"
 
-if [[ -n "$CUSTOM_VERSION" ]]; then
-    bumpver update --set-version "$NEW_VERSION" --no-tag-commit
-else
-    bumpver update $BUMP_ARGS --no-tag-commit
-fi
+bumpver update --set-version "$NEW_VERSION" --no-tag-commit
 
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
