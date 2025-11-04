@@ -39,6 +39,7 @@ fi
 
 # Set defaults for optional variables
 CUSTOM_VERSION="${CUSTOM_VERSION:-N/A}"
+PRERELEASE_TYPE="${PRERELEASE_TYPE:-none}"
 BRANCH_NAME="release-v${VERSION}"
 
 # Determine if this is a prerelease
@@ -58,6 +59,7 @@ This PR was automatically created by the Release Process workflow.
 
 ### Version Bump Details
 - **Bump Type:** ${BUMP_TYPE}
+- **Prerelease Type:** ${PRERELEASE_TYPE}
 - **Custom Version:** ${CUSTOM_VERSION}
 - **New Version:** ${VERSION}
 
@@ -78,7 +80,7 @@ This PR was automatically created by the Release Process workflow.
 ENDOFBODY
 
 # Substitute variables safely using envsubst
-export VERSION BUMP_TYPE CUSTOM_VERSION
+export VERSION BUMP_TYPE PRERELEASE_TYPE CUSTOM_VERSION
 envsubst < "$PR_BODY_FILE" > "${PR_BODY_FILE}.tmp"
 mv "${PR_BODY_FILE}.tmp" "$PR_BODY_FILE"
 

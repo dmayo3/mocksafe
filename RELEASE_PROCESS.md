@@ -10,7 +10,9 @@ As of December 2024, MockSafe uses an automated GitHub Actions workflow to strea
 
 1. **Trigger the Release Workflow:**
    ```bash
-   gh workflow run release.yaml --field bump_type=<patch|minor|major|beta|rc>
+   gh workflow run release.yaml --field bump_type=<patch|minor|major>
+   # OR with a prerelease:
+   gh workflow run release.yaml --field bump_type=<patch|minor|major> --field prerelease_type=<beta|rc>
    # OR for custom version:
    gh workflow run release.yaml --field custom_version=X.Y.Z
    ```
