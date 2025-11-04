@@ -5,7 +5,7 @@ BUMP_TYPE="${1:?Usage: $0 <bump_type> <prerelease_type> [custom_version]}"
 PRERELEASE_TYPE="${2:-none}"
 CUSTOM_VERSION="${3:-}"
 
-# Configure git first, before any operations that might commit
+# Configure git before any operations
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -27,10 +27,10 @@ echo "version=$NEW_VERSION"
 BRANCH_NAME="release-v$NEW_VERSION"
 git checkout -b "$BRANCH_NAME"
 
+# bumpver will commit the changes itself with --no-tag-commit
+# (--no-tag-commit means "don't create a tag", not "don't commit")
 bumpver update --set-version "$NEW_VERSION" --no-tag-commit
 
-git add .
-git commit -m "chore: bump version to $NEW_VERSION"
 git push origin "$BRANCH_NAME"
 
 echo "branch=$BRANCH_NAME"
