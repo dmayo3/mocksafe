@@ -5,6 +5,10 @@ BUMP_TYPE="${1:?Usage: $0 <bump_type> <prerelease_type> [custom_version]}"
 PRERELEASE_TYPE="${2:-none}"
 CUSTOM_VERSION="${3:-}"
 
+# Configure git first, before any operations that might commit
+git config user.name "github-actions[bot]"
+git config user.email "github-actions[bot]@users.noreply.github.com"
+
 if [[ -n "$CUSTOM_VERSION" ]]; then
     NEW_VERSION="$CUSTOM_VERSION"
 else
@@ -24,9 +28,6 @@ BRANCH_NAME="release-v$NEW_VERSION"
 git checkout -b "$BRANCH_NAME"
 
 bumpver update --set-version "$NEW_VERSION" --no-tag-commit
-
-git config user.name "github-actions[bot]"
-git config user.email "github-actions[bot]@users.noreply.github.com"
 
 git add .
 git commit -m "chore: bump version to $NEW_VERSION"
