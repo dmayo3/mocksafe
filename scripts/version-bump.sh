@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # version-bump.sh - Handle version bumping for MockSafe releases
-# Usage: ./version-bump.sh <bump_type> [custom_version]
+# Usage: ./version-bump.sh <bump_type> <prerelease_type> [custom_version]
 
 # Color codes for output
 RED='\033[0;31m'
@@ -36,11 +36,13 @@ validate_version() {
 
 # Parse arguments
 BUMP_TYPE="${1:-}"
-CUSTOM_VERSION="${2:-}"
+PRERELEASE_TYPE="${2:-none}"
+CUSTOM_VERSION="${3:-}"
 
 if [[ -z "$BUMP_TYPE" ]]; then
-    log_error "Usage: $0 <bump_type> [custom_version]"
-    log_error "bump_type: patch, minor, major, beta, rc"
+    log_error "Usage: $0 <bump_type> <prerelease_type> [custom_version]"
+    log_error "bump_type: patch, minor, major"
+    log_error "prerelease_type: none, beta, rc"
     exit 1
 fi
 
@@ -55,22 +57,33 @@ if [[ -n "$CUSTOM_VERSION" ]]; then
 
     NEW_VERSION="$CUSTOM_VERSION"
 else
-    log_info "Determining version for bump type: $BUMP_TYPE"
+    log_info "Determining version for bump type: $BUMP_TYPE with prerelease: $PRERELEASE_TYPE"
 
     # Build bumpver arguments based on bump type
     case "$BUMP_TYPE" in
         major|minor|patch)
             BUMP_ARGS="--$BUMP_TYPE"
             ;;
-        beta|rc)
-            BUMP_ARGS="--tag $BUMP_TYPE"
-            ;;
         *)
             log_error "Invalid bump type: $BUMP_TYPE"
-            log_error "Valid types: patch, minor, major, beta, rc"
+            log_error "Valid types: patch, minor, major"
             exit 1
             ;;
     esac
+
+    # Add prerelease tag if specified
+    if [[ "$PRERELEASE_TYPE" != "none" ]]; then
+        case "$PRERELEASE_TYPE" in
+            beta|rc)
+                BUMP_ARGS="$BUMP_ARGS --tag $PRERELEASE_TYPE"
+                ;;
+            *)
+                log_error "Invalid prerelease type: $PRERELEASE_TYPE"
+                log_error "Valid types: none, beta, rc"
+                exit 1
+                ;;
+        esac
+    fi
 
     # Run bumpver dry run to get new version
     log_info "Running bumpver dry run..."

@@ -10,9 +10,16 @@ on:
           - patch
           - minor
           - major
+        default: "patch"
+      prerelease_type:
+        description: "Prerelease type (optional)"
+        required: false
+        type: choice
+        options:
+          - none
           - beta
           - rc
-        default: "patch"
+        default: "none"
       custom_version:
         description: "Custom version (optional, overrides bump_type)"
         required: false
@@ -51,12 +58,13 @@ jobs:
         id: bump
         env:
           BUMP_TYPE: ${{ inputs.bump_type }}
+          PRERELEASE_TYPE: ${{ inputs.prerelease_type }}
           CUSTOM_VERSION: ${{ inputs.custom_version }}
         run: |
           chmod +x scripts/version-bump.sh
 
           # Run script and capture outputs
-          OUTPUT=$(scripts/version-bump.sh "$BUMP_TYPE" "$CUSTOM_VERSION")
+          OUTPUT=$(scripts/version-bump.sh "$BUMP_TYPE" "$PRERELEASE_TYPE" "$CUSTOM_VERSION")
 
           # Extract version and branch from output
           VERSION=$(echo "$OUTPUT" | grep "^version=" | cut -d= -f2)
@@ -72,6 +80,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.bump.outputs.version }}
           BUMP_TYPE: ${{ inputs.bump_type }}
+          PRERELEASE_TYPE: ${{ inputs.prerelease_type }}
           CUSTOM_VERSION: ${{ inputs.custom_version }}
         run: |
           chmod +x scripts/create-release-pr.sh
@@ -88,17 +97,25 @@ jobs:
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Summary
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
+          BUMP_TYPE: ${{ inputs.bump_type }}
+          PRERELEASE_TYPE: ${{ inputs.prerelease_type }}
+          CUSTOM_VERSION: ${{ inputs.custom_version || 'N/A' }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_URL: ${{ steps.pr.outputs.pr_url }}
         run: |
-          # Use printf to safely handle variables
+          # Use environment variables to prevent injection
           {
             printf "# 📦 Release PR Created\n\n"
             printf "## Version Information\n"
-            printf -- "- **New Version:** \`%s\`\n" "${{ steps.bump.outputs.version }}"
-            printf -- "- **Bump Type:** %s\n" "${{ inputs.bump_type }}"
-            printf -- "- **Custom Version:** %s\n" "${{ inputs.custom_version || 'N/A' }}"
+            printf -- "- **New Version:** \`%s\`\n" "$VERSION"
+            printf -- "- **Bump Type:** %s\n" "$BUMP_TYPE"
+            printf -- "- **Prerelease Type:** %s\n" "$PRERELEASE_TYPE"
+            printf -- "- **Custom Version:** %s\n" "$CUSTOM_VERSION"
             printf "\n## Pull Request\n"
-            printf -- "- **PR Number:** #%s\n" "${{ steps.pr.outputs.pr_number }}"
-            printf -- "- **PR URL:** %s\n" "${{ steps.pr.outputs.pr_url }}"
+            printf -- "- **PR Number:** #%s\n" "$PR_NUMBER"
+            printf -- "- **PR URL:** %s\n" "$PR_URL"
             printf "\n## Next Steps\n"
             printf "1. Review and approve the PR\n"
             printf "2. Merge to trigger tag creation and deployment\n"
