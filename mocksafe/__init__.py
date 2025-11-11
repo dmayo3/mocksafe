@@ -31,7 +31,7 @@ from mocksafe.apis.bdd import (
     spy,
 )
 
-__version__ = "0.10.0-beta"
+__version__ = "0.10.1-beta"
 
 __all__ = [
     "MockProperty",
