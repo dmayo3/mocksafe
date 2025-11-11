@@ -8,37 +8,41 @@ echo "📊 Monitoring PR #$PR_NUMBER checks..."
 
 # Maximum wait time: 30 minutes
 MAX_WAIT=1800
-INTERVAL=30
+INTERVAL=10
 ELAPSED=0
+CHECKS_APPEARED=false
 
 while [ $ELAPSED -lt $MAX_WAIT ]; do
-  # Get check status using correct field names
-  # state can be: COMPLETED, PENDING, QUEUED, REQUESTED, WAITING
-  CHECK_STATUS=$(gh pr checks "$PR_NUMBER" --json state,name --jq '
-    if (any(.[]; .state != "COMPLETED")) then
-      "pending"
-    elif (all(.[]; .state == "COMPLETED")) then
-      "success"
-    else
-      "failed"
-    end
-  ')
+  # Get check statuses
+  CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json state,name 2>/dev/null || echo "[]")
+  CHECK_COUNT=$(echo "$CHECKS_JSON" | jq 'length')
 
-  echo "Check status: $CHECK_STATUS"
+  if [ "$CHECK_COUNT" -gt 0 ]; then
+    CHECKS_APPEARED=true
+    echo "Found $CHECK_COUNT checks"
 
-  if [ "$CHECK_STATUS" = "success" ]; then
-    echo "✅ All checks completed!"
-    echo "checks_passed=true" >> "$GITHUB_OUTPUT"
-    exit 0
-  elif [ "$CHECK_STATUS" = "failed" ]; then
-    echo "❌ Some checks failed"
-    echo "checks_passed=false" >> "$GITHUB_OUTPUT"
-    exit 1
+    # Count checks by state
+    COMPLETED_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state == "COMPLETED")] | length')
+    PENDING_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state != "COMPLETED")] | length')
+
+    echo "Status: $COMPLETED_COUNT completed, $PENDING_COUNT pending"
+    echo "$CHECKS_JSON" | jq -r '.[] | "  \(.state): \(.name)"' || true
+
+    # If all checks are completed, we're done
+    if [ "$PENDING_COUNT" -eq 0 ]; then
+      echo "✅ All checks completed!"
+      echo "checks_passed=true" >> "$GITHUB_OUTPUT"
+      exit 0
+    fi
   else
-    echo "⏳ Checks still pending... waiting ${INTERVAL}s"
-    sleep $INTERVAL
-    ELAPSED=$((ELAPSED + INTERVAL))
+    # No checks yet
+    if [ "$CHECKS_APPEARED" = false ]; then
+      echo "⏳ Waiting for checks to appear..."
+    fi
   fi
+
+  sleep $INTERVAL
+  ELAPSED=$((ELAPSED + INTERVAL))
 done
 
 echo "⏰ Timeout waiting for checks (max ${MAX_WAIT}s)"
