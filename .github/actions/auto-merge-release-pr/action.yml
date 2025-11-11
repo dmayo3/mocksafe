@@ -1,0 +1,62 @@
+name: Auto-Merge Release PR
+description: Wait for checks, approve, and merge (or close in dry-run) a release PR
+
+inputs:
+  pr_number:
+    description: PR number to process
+    required: true
+  branch:
+    description: Branch name to clean up
+    required: true
+  version:
+    description: Version being released
+    required: true
+  dry_run:
+    description: If true, close PR instead of merging (for testing)
+    required: false
+    default: 'true'
+  github_token:
+    description: GitHub token for API access
+    required: true
+
+outputs:
+  checks_passed:
+    description: Whether all checks passed
+    value: ${{ steps.wait-checks.outputs.checks_passed }}
+  action_taken:
+    description: Action taken (merged, closed, or failed)
+    value: ${{ steps.process-pr.outputs.action_taken }}
+
+runs:
+  using: composite
+  steps:
+    - name: Wait for PR checks
+      id: wait-checks
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+      run: |
+        ${{ github.action_path }}/wait-for-checks.sh
+
+    - name: Approve PR
+      if: steps.wait-checks.outputs.checks_passed == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+      run: |
+        ${{ github.action_path }}/approve-pr.sh
+
+    - name: Process PR (merge or close)
+      id: process-pr
+      if: steps.wait-checks.outputs.checks_passed == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        PR_NUMBER: ${{ inputs.pr_number }}
+        BRANCH: ${{ inputs.branch }}
+        VERSION: ${{ inputs.version }}
+        DRY_RUN: ${{ inputs.dry_run }}
+      run: |
+        ${{ github.action_path }}/process-pr.sh
