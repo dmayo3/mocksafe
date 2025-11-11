@@ -22,15 +22,24 @@ while [ $ELAPSED -lt $MAX_WAIT ]; do
     echo "Found $CHECK_COUNT checks"
 
     # Count checks by state
-    COMPLETED_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state == "COMPLETED")] | length')
-    PENDING_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state != "COMPLETED")] | length')
+    # States can be: SUCCESS, FAILURE, NEUTRAL, CANCELLED, SKIPPED, TIMED_OUT, ACTION_REQUIRED
+    COMPLETED_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state == "SUCCESS" or .state == "FAILURE" or .state == "NEUTRAL" or .state == "CANCELLED" or .state == "SKIPPED" or .state == "TIMED_OUT" or .state == "ACTION_REQUIRED")] | length')
+    PENDING_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state != "SUCCESS" and .state != "FAILURE" and .state != "NEUTRAL" and .state != "CANCELLED" and .state != "SKIPPED" and .state != "TIMED_OUT" and .state != "ACTION_REQUIRED")] | length')
+    FAILED_COUNT=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state == "FAILURE" or .state == "TIMED_OUT" or .state == "ACTION_REQUIRED")] | length')
 
-    echo "Status: $COMPLETED_COUNT completed, $PENDING_COUNT pending"
+    echo "Status: $COMPLETED_COUNT completed, $PENDING_COUNT pending, $FAILED_COUNT failed"
     echo "$CHECKS_JSON" | jq -r '.[] | "  \(.state): \(.name)"' || true
 
-    # If all checks are completed, we're done
-    if [ "$PENDING_COUNT" -eq 0 ]; then
-      echo "✅ All checks completed!"
+    # If checks have failed, exit immediately
+    if [ "$FAILED_COUNT" -gt 0 ]; then
+      echo "❌ Some checks failed"
+      echo "checks_passed=false" >> "$GITHUB_OUTPUT"
+      exit 1
+    fi
+
+    # If all checks are completed successfully, we're done
+    if [ "$PENDING_COUNT" -eq 0 ] && [ "$COMPLETED_COUNT" -gt 0 ]; then
+      echo "✅ All checks completed successfully!"
       echo "checks_passed=true" >> "$GITHUB_OUTPUT"
       exit 0
     fi
