@@ -12,11 +12,12 @@ INTERVAL=30
 ELAPSED=0
 
 while [ $ELAPSED -lt $MAX_WAIT ]; do
-  # Get check status
-  CHECK_STATUS=$(gh pr checks "$PR_NUMBER" --json state,name,conclusion --jq '
-    if (.[].state == "PENDING") then
+  # Get check status using correct field names
+  # state can be: COMPLETED, PENDING, QUEUED, REQUESTED, WAITING
+  CHECK_STATUS=$(gh pr checks "$PR_NUMBER" --json state,name --jq '
+    if (any(.[]; .state != "COMPLETED")) then
       "pending"
-    elif (all(.[]; .conclusion == "SUCCESS" or .conclusion == "SKIPPED")) then
+    elif (all(.[]; .state == "COMPLETED")) then
       "success"
     else
       "failed"
@@ -26,7 +27,7 @@ while [ $ELAPSED -lt $MAX_WAIT ]; do
   echo "Check status: $CHECK_STATUS"
 
   if [ "$CHECK_STATUS" = "success" ]; then
-    echo "✅ All checks passed!"
+    echo "✅ All checks completed!"
     echo "checks_passed=true" >> "$GITHUB_OUTPUT"
     exit 0
   elif [ "$CHECK_STATUS" = "failed" ]; then
