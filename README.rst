@@ -25,7 +25,7 @@
     :target: https://github.com/dmayo3/mocksafe/blob/main/LICENSE
     :alt: MIT License
 
-MockSafe v0.10.0-beta
+MockSafe v0.10.1-beta
 ---------------------
 
 A mocking library developed to enable static and runtime type checking of your mocks to help keep them up-to-date with your production code.
@@ -41,13 +41,13 @@ Install and quickstart
 
     pip install mocksafe
 
-`Library Usage <https://mocksafe.readthedocs.io/en/0.10.0-beta/usage.html>`_
+`Library Usage <https://mocksafe.readthedocs.io/en/0.10.1-beta/usage.html>`_
 
 Links
 ----------------------
 
 :Install: `PyPi <https://pypi.org/project/mocksafe>`_
-:Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/0.10.0-beta/>`_
+:Docs:    `Read The Docs <https://mocksafe.readthedocs.io/en/0.10.1-beta/>`_
 :License: `MIT <https://github.com/dmayo3/mocksafe/blob/main/LICENSE>`_
 :Source:  `GitHub <https://github.com/dmayo3/mocksafe>`_
 :Issues:  `GitHub Issues <https://github.com/dmayo3/mocksafe/issues>`_
