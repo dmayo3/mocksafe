@@ -24,13 +24,12 @@ on:
         type: boolean
         default: true
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   create-release-pr:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       pr_number: ${{ steps.pr.outputs.pr_number }}
       pr_url: ${{ steps.pr.outputs.pr_url }}
@@ -72,29 +71,46 @@ jobs:
           echo "pr_url=$(echo "$OUTPUT" | grep "^pr_url=" | cut -d= -f2)" >> $GITHUB_OUTPUT
           echo "pr_number=$(echo "$OUTPUT" | grep "^pr_number=" | cut -d= -f2)" >> $GITHUB_OUTPUT
 
-      - name: Summary
-        env:
-          VERSION: ${{ steps.bump.outputs.version }}
-          PR_URL: ${{ steps.pr.outputs.pr_url }}
-        run: |
-          echo "# 📦 Release PR Created" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "**PR:** $PR_URL" >> $GITHUB_STEP_SUMMARY
-
   auto-merge-pr:
     name: Auto-merge Release PR
     runs-on: ubuntu-latest
     needs: create-release-pr
     if: ${{ needs.create-release-pr.outputs.pr_number }}
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      merge_status: ${{ steps.merge.outputs.action_taken }}
     steps:
       - uses: actions/checkout@v5
 
       - name: Auto-merge release PR
+        id: merge
         uses: ./.github/actions/auto-merge-release-pr
         with:
           pr_number: ${{ needs.create-release-pr.outputs.pr_number }}
           branch: ${{ needs.create-release-pr.outputs.branch }}
+          version: ${{ needs.create-release-pr.outputs.version }}
+          dry_run: ${{ inputs.dry_run }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  auto-tag-release:
+    name: Auto-Tag Release
+    runs-on: ubuntu-latest
+    needs: [create-release-pr, auto-merge-pr]
+    if: ${{ needs.auto-merge-pr.outputs.merge_status == 'merged' || inputs.dry_run == 'true' }}
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and tag release
+        uses: ./.github/actions/auto-tag-release
+        with:
           version: ${{ needs.create-release-pr.outputs.version }}
           dry_run: ${{ inputs.dry_run }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

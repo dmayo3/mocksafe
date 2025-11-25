@@ -1,0 +1,76 @@
+name: Auto-Tag Release
+description: Create git tag and push to trigger publish workflow
+
+inputs:
+  version:
+    description: Version to tag (e.g., "1.2.3" or "1.2.3-beta")
+    required: true
+  dry_run:
+    description: If true, cancel triggered workflow and clean up tag after testing
+    required: false
+    default: "true"
+  github_token:
+    description: GitHub token for API access
+    required: true
+
+outputs:
+  tag_name:
+    description: The git tag that was created
+    value: ${{ steps.create-tag.outputs.tag_name }}
+  tag_pushed:
+    description: Whether the tag was successfully pushed
+    value: ${{ steps.push-tag.outputs.pushed }}
+  workflow_run_url:
+    description: URL to the triggered publish workflow run
+    value: ${{ steps.push-tag.outputs.run_url }}
+  cleanup_status:
+    description: Status of dry-run cleanup
+    value: ${{ steps.cleanup.outputs.status }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create tag
+      id: create-tag
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: ${{ github.action_path }}/create-tag.sh
+
+    - name: Push tag and find workflow
+      id: push-tag
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        GH_TOKEN: ${{ inputs.github_token }}
+      run: ${{ github.action_path }}/push-tag.sh
+
+    - name: Dry-run cleanup
+      id: cleanup
+      if: inputs.dry_run == 'true'
+      shell: bash
+      env:
+        TAG_NAME: ${{ steps.create-tag.outputs.tag_name }}
+        RUN_ID: ${{ steps.push-tag.outputs.run_id }}
+        GH_TOKEN: ${{ inputs.github_token }}
+      run: ${{ github.action_path }}/cleanup.sh
+
+    - name: Production summary
+      if: inputs.dry_run != 'true'
+      shell: bash
+      env:
+        TAG: ${{ steps.create-tag.outputs.tag_name }}
+        RUN_URL: ${{ steps.push-tag.outputs.run_url }}
+      run: |
+        echo "✅ Tag ${TAG} created and pushed"
+        if [ -n "$RUN_URL" ]; then
+          echo "📢 Publish workflow: $RUN_URL"
+        fi
+
+    - name: Dry-run summary
+      if: inputs.dry_run == 'true'
+      shell: bash
+      env:
+        TAG: ${{ steps.create-tag.outputs.tag_name }}
+      run: |
+        echo "✅ Dry-run completed - tag $TAG was created, tested, and cleaned up"
