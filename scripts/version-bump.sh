@@ -14,7 +14,7 @@ if [[ -n "$CUSTOM_VERSION" ]]; then
 else
     # bumpver handles prerelease versions automatically
     # 0.10.0-beta + --minor = 0.11.0-beta
-    NEW_VERSION=$(bumpver update --$BUMP_TYPE --dry --no-commit 2>&1 | grep "^INFO.*New Version:" | sed 's/.*New Version: //')
+    NEW_VERSION=$(uvx bumpver update --$BUMP_TYPE --dry --no-commit 2>&1 | grep "^INFO.*New Version:" | sed 's/.*New Version: //')
 
     # If adding a new prerelease tag to a stable version
     if [[ "$PRERELEASE_TYPE" != "none" ]] && [[ "$NEW_VERSION" != *"-"* ]]; then
@@ -29,7 +29,7 @@ git checkout -b "$BRANCH_NAME"
 
 # bumpver will commit the changes itself with --no-tag-commit
 # (--no-tag-commit means "don't create a tag", not "don't commit")
-bumpver update --set-version "$NEW_VERSION" --no-tag-commit
+uvx bumpver update --set-version "$NEW_VERSION" --no-tag-commit
 
 git push origin "$BRANCH_NAME"
 

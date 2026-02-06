@@ -1,6 +1,12 @@
 # Pre-commit hooks configuration
 # See https://pre-commit.com for more information
 repos:
+  # Make sure uv.lock file is up-to-date when running pre-commits
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.10.0
+    hooks:
+      - id: uv-lock
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:

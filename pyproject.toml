@@ -67,9 +67,11 @@ push = false
 [tool.black]
 line-length = 100
 
+# Used by Read The Docs, which doesn't support `uv`
+[project.optional-dependencies]
+docs = ["sphinx-rtd-theme>=1.5.0", "pytest>=8.4.0"]
+
 [dependency-groups]
-pytest = ["pytest >= 8.4.0"]
-docs = ["sphinx-rtd-theme >= 1.5.0", "pytest >= 8.4.0"]
 dev = [
     "black >= 25.1.0",
     "coverage >= 7.10.0",
@@ -88,6 +90,7 @@ dev = [
     "pylint >= 3.3.0",
     "pytest >= 8.4.0",
     "pytest-sugar >= 1.0.0",
+    "sphinx-rtd-theme >= 1.5.0"
 ]
 
 [tool.bumpver.file_patterns]

@@ -784,6 +784,12 @@ name = "mocksafe"
 version = "0.10.0b0"
 source = { editable = "." }
 
+[package.optional-dependencies]
+docs = [
+    { name = "pytest" },
+    { name = "sphinx-rtd-theme" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "black" },
@@ -803,16 +809,15 @@ dev = [
     { name = "pylint" },
     { name = "pytest" },
     { name = "pytest-sugar" },
-]
-docs = [
-    { name = "pytest" },
     { name = "sphinx-rtd-theme" },
-]
-pytest = [
-    { name = "pytest" },
 ]
 
 [package.metadata]
+requires-dist = [
+    { name = "pytest", marker = "extra == 'docs'", specifier = ">=8.4.0" },
+    { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = ">=1.5.0" },
+]
+provides-extras = ["docs"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -833,12 +838,8 @@ dev = [
     { name = "pylint", specifier = ">=3.3.0" },
     { name = "pytest", specifier = ">=8.4.0" },
     { name = "pytest-sugar", specifier = ">=1.0.0" },
-]
-docs = [
-    { name = "pytest", specifier = ">=8.4.0" },
     { name = "sphinx-rtd-theme", specifier = ">=1.5.0" },
 ]
-pytest = [{ name = "pytest", specifier = ">=8.4.0" }]
 
 [[package]]
 name = "mypy"

@@ -1,7 +1,13 @@
 version: 2
 updates:
   # Python dependencies
-  - package-ecosystem: "pip"
+  # `uv` is supported:
+  # https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#package-ecosystem-
+  #
+  # But allegedly there are some corner cases:
+  # * https://github.com/astral-sh/uv/issues/2512 (opened 2024-03-19)
+  # * https://github.com/dependabot/dependabot-core/issues/13858 (opened 2025-12-24)
+  - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"
