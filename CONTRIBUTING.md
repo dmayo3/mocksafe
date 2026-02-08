@@ -71,7 +71,7 @@ If you would like to contribute code, please follow these steps:
 
 ## Development Setup
 
-To set up the development environment, follow these steps:
+To set up the development environment, install [uv](https://docs.astral.sh/uv/) and follow these steps:
 
 1. Clone the repository:
 
@@ -81,44 +81,24 @@ To set up the development environment, follow these steps:
    ```
 
 2. Install dependencies:
-   Since this project uses pyproject.toml, you can install the dependencies using the following commands:
-
-- For a regular installation:
+   Since this project uses `uv`, you can install the dependencies using the following commands:
 
    ```bash
-   pip install .
+   uv sync
    ```
 
-- For an editable installation (recommended for development):
+   This creates an editable install of mocksafe with development dependencies.
+
+3. Set up pre-commit hooks (optional but recommended):
 
    ```bash
-   pip install -e .
+   uv run pre-commit install
    ```
 
-3. (Optional) Set up a virtual environment:
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-
-4. Install development dependencies (optional but recommended):
-
-   ```bash
-   pip install -e .[dev]
-   ```
-
-5. Set up pre-commit hooks (optional but recommended):
-
-   ```bash
-   pre-commit install
-   ```
-
-6. Alternatively, you can use tox to manage your development environment and run tests. Install tox and run it in the project directory:
+5. Alternatively, you can use tox to manage your development environment and run tests. Run it directly using `uvx` in the project directory:
 
     ```bash
-   pip install tox
-   tox
+   uvx tox
    ```
 
 This will automatically set up virtual environments and install dependencies for testing.
@@ -129,16 +109,10 @@ This project uses pre-commit hooks to maintain code quality and consistency. The
 
 ### Setting up Pre-commit Hooks
 
-1. Install the development dependencies:
+1. Install the pre-commit hooks:
 
    ```bash
-   pip install -e .[dev]
-   ```
-
-2. Install the pre-commit hooks:
-
-   ```bash
-   pre-commit install
+   uv run pre-commit install
    ```
 
 ### What the Hooks Do
@@ -158,13 +132,13 @@ The pre-commit hooks will automatically:
 You can run the pre-commit hooks manually on all files:
 
 ```bash
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 Or run them on specific files:
 
 ```bash
-pre-commit run --files path/to/file.py
+uv run pre-commit run --files path/to/file.py
 ```
 
 ### Bypassing Hooks (Not Recommended)
@@ -183,20 +157,14 @@ In addition to installing dependencies, tox can be used to manage various tasks 
 
 ### Setting up Tox
 
-1. First, ensure that tox is installed by running:
-
-   ```bash
-   pip install tox
-   ```
-
-2. Once tox is installed, you can run various tasks by executing tox in the project directory.
+No need to install, just run tox directly with `uvx tox`.
 
 ### Running Tests
 
 - To run the test suite using tox, simply execute:
 
    ```bash
-   tox
+   uvx tox
    ```
 
 This will run the tests across the configured Python environments and ensure your changes don’t break existing functionality.
@@ -206,7 +174,7 @@ This will run the tests across the configured Python environments and ensure you
 - tox can also be used to ensure that the code follows proper linting and formatting standards. To run linting and formatting checks, use:
 
    ```bash
-   tox -e lint
+   uvx tox -e lint
    ```
 
 This will run tools like flake8 and black (depending on your tox.ini setup) to check for any issues in the code.
@@ -216,7 +184,7 @@ This will run tools like flake8 and black (depending on your tox.ini setup) to c
 - To build the Sphinx documentation using tox, run:
 
    ```bash
-   tox -e docs
+   uvx tox -e docs
    ```
 
 This will generate the documentation in HTML format and catch any errors during the build process.
@@ -226,9 +194,9 @@ This will generate the documentation in HTML format and catch any errors during 
 - If you only want to run a specific environment, such as tests for Python 3.11 or formatting, you can specify the environment like this:
 
    ```bash
-   tox -e py311   # Runs tests for Python 3.11
-   tox -e format  # Runs code formatting
-   tox -e docs    # Builds the documentation
+   uvx tox -e py311   # Runs tests for Python 3.11
+   uvx tox -e format  # Runs code formatting
+   uvx tox -e docs    # Builds the documentation
    ```
 
 This flexibility allows you to only run the environments you need during development.

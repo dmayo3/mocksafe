@@ -6,14 +6,14 @@ description = "A mocking library developed to enable static and runtime type che
 
 requires-python = ">= 3.10"
 readme = "README.rst"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Natural Language :: English",
     "Environment :: Console",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -49,32 +49,12 @@ dependencies = []
 Documentation = "https://mocksafe.readthedocs.io/en/0.10.0-beta/"
 Source = "https://github.com/dmayo3/mocksafe"
 
-[project.optional-dependencies]
-pytest = ["pytest >= 8.4.0"]
-docs = ["sphinx-rtd-theme >= 1.5.0", "pytest >= 8.4.0"]
-dev = [
-    "pre-commit >= 4.0.0",
-    "pytest >= 8.4.0",
-    "pytest-sugar >= 1.0.0",
-    "black >= 25.1.0",
-    "pylint >= 3.3.0",
-    "flake8 >= 7.1.0",
-    "flake8-rst-docstrings",
-    "flake8-sphinx-links",
-    "flake8-bugbear",
-    "flake8-annotations",
-    "flake8-bandit",
-    "flake8-simplify",
-    "flake8-warnings",
-    "flake8-eradicate",
-    "pep8-naming",
-    "mypy >= 1.17.0",
-    "coverage >= 7.10.0",
-]
-
 [build-system]
 build-backend = "setuptools.build_meta"
 requires = ["setuptools", "wheel"]
+
+[tool.setuptools.package-data]
+mocksafe = ["py.typed"]
 
 [project.entry-points.pytest11]
 mocksafe = "mocksafe.plugin"
@@ -89,6 +69,32 @@ push = false
 
 [tool.black]
 line-length = 100
+
+# Used by Read The Docs, which doesn't support `uv`
+[project.optional-dependencies]
+docs = ["sphinx-rtd-theme>=1.5.0", "pytest>=8.4.0"]
+
+[dependency-groups]
+dev = [
+    "black >= 25.1.0",
+    "coverage >= 7.10.0",
+    "flake8 >= 7.1.0",
+    "flake8-annotations",
+    "flake8-bandit",
+    "flake8-bugbear",
+    "flake8-eradicate",
+    "flake8-rst-docstrings",
+    "flake8-simplify",
+    "flake8-sphinx-links",
+    "flake8-warnings",
+    "mypy >= 1.17.0",
+    "pep8-naming",
+    "pre-commit >= 4.0.0",
+    "pylint >= 3.3.0",
+    "pytest >= 8.4.0",
+    "pytest-sugar >= 1.0.0",
+    "sphinx-rtd-theme >= 1.5.0"
+]
 
 [tool.bumpver.file_patterns]
 "pyproject.toml" = [
