@@ -52,7 +52,7 @@ jobs:
       - name: Build source and wheel distribution
         run: uv build --sdist --wheel --out-dir dist/
       - name: Upload distribution artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist
