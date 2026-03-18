@@ -4,6 +4,7 @@ from mocksafe.apis.bdd.when_then import (
     LastCallStubber,
     PropertyStubber,
     when,
+    when_async,
     stub,
 )
 from mocksafe.apis.bdd.that import MockCalls, that, spy
