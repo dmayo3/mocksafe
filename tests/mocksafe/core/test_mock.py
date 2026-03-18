@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 import pytest
 from typing import Any, cast
 from mocksafe.core.mock import SafeMock, MethodMock, mock_reset
@@ -8,6 +9,8 @@ class TestClass:
     some_attribute: int = 123
 
     def foo(self: TestClass): ...
+
+    async def async_foo(self: TestClass): ...
 
     @classmethod
     def class_method(cls: type[TestClass]) -> str:
@@ -97,3 +100,20 @@ def test_get_mocked_attr_handles_static_methods():
 
     # Static methods don't have self or cls parameters
     assert len(params) == 0, f"Static method should have 0 parameters, got {len(params)}"
+
+
+def test_get_mocked_attr_indicates_async_methods():
+    """Test that async methods are correctly identified as async."""
+    mock_object = SafeMock(TestClass)
+
+    # Get the mocked async method
+    mocked_async_method = mock_object.get_mocked_attr("async_foo")
+    assert isinstance(mocked_async_method, MethodMock)
+
+    # The is_async property should be True for async methods
+    assert mocked_async_method.is_async, "Async method should have is_async=True"
+
+
+def test_async_method_mock_is_awaitable():
+    mock_object = SafeMock(TestClass)
+    asyncio.run(mock_object.async_foo())
