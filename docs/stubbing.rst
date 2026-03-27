@@ -183,6 +183,7 @@ return type in ``then_return()`` rather than a coroutine.
 
     >>> asyncio.run(mock_lumberjack.chopping("Norwegian Pine"))
     'I sleep all night, I work all day.'
+
 Rehearsed conditions work the same way — ``await`` the mock call inside the
 ``called_with()`` rehearsal:
 
