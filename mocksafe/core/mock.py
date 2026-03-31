@@ -237,8 +237,15 @@ class SafeMock(Generic[T]):
             if return_annotation != signature.return_annotation:
                 signature = signature.replace(return_annotation=return_annotation)
 
+            is_async = inspect.iscoroutinefunction(original_attr)
+
             self._mocks[attr_name] = MethodMock(
-                self._spec, str(self), attr_name, signature, is_class_method=is_class_method
+                self._spec,
+                str(self),
+                attr_name,
+                signature,
+                is_class_method=is_class_method,
+                is_async=is_async,
             )
 
         return self._mocks[attr_name]
@@ -315,6 +322,7 @@ class MethodMock(CallRecorder, Generic[T]):
         signature: inspect.Signature,
         *,
         is_class_method: bool = False,
+        is_async: bool = False,
     ):
         self._stub: MethodStub
         self._spy: MethodSpy
@@ -324,6 +332,7 @@ class MethodMock(CallRecorder, Generic[T]):
         self._name = name
         self._signature = signature
         self._is_class_method = is_class_method
+        self._is_async = is_async
         self.reset()
 
     def reset(self: MethodMock) -> None:
@@ -334,10 +343,19 @@ class MethodMock(CallRecorder, Generic[T]):
         # For class methods, inject the class as the first 'cls' argument
         if self._is_class_method:
             args = (self._spec, *args)
+        if self._is_async:
+            return self._async_call(*args, **kwargs)
+        return self._spy(*args, **kwargs)
+
+    async def _async_call(self: MethodMock, *args, **kwargs) -> Any:
         return self._spy(*args, **kwargs)
 
     def __repr__(self: MethodMock) -> str:
         return f"MethodMock[{self._stub}]"
+
+    @property
+    def is_async(self: MethodMock) -> bool:
+        return self._is_async
 
     @property
     def full_name(self: MethodMock) -> str:
