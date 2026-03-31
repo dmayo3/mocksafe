@@ -189,6 +189,9 @@ Rehearsed conditions work the same way — ``await`` the mock call inside the
 
 .. doctest::
 
+    >>> import asyncio
+    >>> from mocksafe import mock, when_async
+
     >>> async def run() -> None:
     ...     when_async(mock_lumberjack.chopping).called_with(
     ...         await mock_lumberjack.chopping("Oak")
@@ -197,7 +200,7 @@ Rehearsed conditions work the same way — ``await`` the mock call inside the
     ...     print(result)
 
     >>> asyncio.run(run())
-    "I'm a lumberjack and I'm okay!"
+    I'm a lumberjack and I'm okay!
 
 .. note::
 
