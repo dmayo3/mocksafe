@@ -1,7 +1,7 @@
 from __future__ import annotations
 import inspect
 from typing import Generic, TypeVar, Any, cast
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from mocksafe.core.custom_types import CallMatcher
 from mocksafe.core.mock_property import MockProperty
 from mocksafe.core.mock import SafeMock, MethodMock, ResultsProvider
@@ -10,6 +10,33 @@ from mocksafe.core.call_matchers import AnyCallMatcher, CustomCallMatcher
 
 T = TypeVar("T")
 ANY_CALL: CallMatcher = AnyCallMatcher()
+
+
+def when_async(mock_callable: Callable[..., Coroutine[Any, Any, T]]) -> WhenStubber[T]:
+    """
+    Stub a mocked async method / Callable.
+
+    This is the async counterpart to :func:`when`. Use it when stubbing
+    async methods so that :meth:`MatchCallStubber.then_return` accepts the
+    awaited return type directly rather than a coroutine.
+
+    :param mock_callable: a mocked async method / Callable
+    :rtype: WhenStubber[T]
+
+    :Example:
+        >>> when_async(mock_svc.fetch).any_call().then_return("result")
+    """
+    if not isinstance(mock_callable, MethodMock):
+        raise ValueError(f"Not a SafeMocked method: {mock_callable} ({type(mock_callable)})")
+
+    if not mock_callable.is_async:
+        raise TypeError(
+            f"when_async() can only be used with async methods, "
+            f"but {mock_callable.name}() is not async. "
+            f"Use when() instead."
+        )
+
+    return WhenStubber(mock_callable)
 
 
 def when(mock_callable: Callable[..., T]) -> WhenStubber[T]:

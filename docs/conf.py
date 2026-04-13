@@ -38,6 +38,12 @@ autodoc_default_options = {
 
 doctest_global_setup = """
 from random import Random
-from mocksafe import MockProperty, mock, mock_module, stub, when, that, spy
+from mocksafe import MockProperty, mock, mock_module, stub, when, when_async, that, spy
+
 mock_random: Random = mock(Random)
+
+class _AsyncService:
+    async def fetch(self, url: str = "") -> str:
+        return ""
+mock_svc: _AsyncService = mock(_AsyncService)
 """

@@ -154,6 +154,62 @@ can always use a function or method instead.
     "I'm a lumberjack and I'm okay!"
 
 
+Async Stubbing
+^^^^^^^^^^^^^^
+
+When the method you want to stub is ``async``, use :func:`~mocksafe.when_async`
+instead of :func:`~mocksafe.when`. It accepts the same stub condition methods
+(``any_call()``, ``called_with()``, ``call_matching()``) and outcome methods
+(``then_return()``, ``then_raise()``, etc.), but it expects the **awaited**
+return type in ``then_return()`` rather than a coroutine.
+
+.. doctest::
+
+    >>> import asyncio
+    >>> from mocksafe import mock, when_async
+
+    >>> class Lumberjack:
+    ...     async def chopping(self, tree: str) -> str:
+    ...         return "TODO"
+
+    >>> mock_lumberjack: Lumberjack = mock(Lumberjack)
+
+    >>> when_async(mock_lumberjack.chopping).any_call().then_return(
+    ...     'I sleep all night, I work all day.'
+    ... )
+
+    >>> asyncio.run(mock_lumberjack.chopping("Blue Spruce"))
+    'I sleep all night, I work all day.'
+
+    >>> asyncio.run(mock_lumberjack.chopping("Norwegian Pine"))
+    'I sleep all night, I work all day.'
+
+Rehearsed conditions work the same way — ``await`` the mock call inside the
+``called_with()`` rehearsal:
+
+.. doctest::
+
+    >>> import asyncio
+    >>> from mocksafe import mock, when_async
+
+    >>> async def run() -> None:
+    ...     when_async(mock_lumberjack.chopping).called_with(
+    ...         await mock_lumberjack.chopping("Oak")
+    ...     ).then_return("I'm a lumberjack and I'm okay!")
+    ...     result = await mock_lumberjack.chopping("Oak")
+    ...     print(result)
+
+    >>> asyncio.run(run())
+    I'm a lumberjack and I'm okay!
+
+.. note::
+
+    Using :func:`~mocksafe.when` on an async method still works but it will
+    return the coroutine object rather than the awaited result. Using
+    :func:`~mocksafe.when_async` on a sync method, will raise a
+    ``TypeError``.
+
+
 Stub Outcomes
 -------------
 
