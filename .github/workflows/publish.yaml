@@ -84,7 +84,7 @@ jobs:
     needs:
       - build
       - verify-dist
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true' }}
+    if: ${{ github.event.inputs.dry_run != 'true' }}
     permissions:
       contents: read
       id-token: write # Required for trusted publishing
@@ -108,7 +108,7 @@ jobs:
     needs:
       - build
       - verify-dist
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true' }}
+    if: ${{ github.event.inputs.dry_run != 'true' }}
     permissions:
       contents: read
       id-token: write # Required for trusted publishing

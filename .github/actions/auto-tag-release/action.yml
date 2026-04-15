@@ -50,7 +50,6 @@ runs:
       with:
         ref: ${{ steps.create-tag.outputs.tag_name }}
         dry_run: ${{ inputs.dry_run == 'true' && 'true' || 'false' }}
-        wait_for_completion: "true"
         github_token: ${{ inputs.github_token }}
 
     - name: Dry-run cleanup
