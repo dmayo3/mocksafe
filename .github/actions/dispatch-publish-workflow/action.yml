@@ -57,6 +57,7 @@ runs:
         GH_TOKEN: ${{ inputs.github_token }}
         REF: ${{ inputs.ref }}
         WORKFLOW_FILE: ${{ inputs.workflow_file }}
+        DISPATCHED_AT: ${{ steps.dispatch.outputs.dispatched_at }}
         DISCOVER_TIMEOUT_SECONDS: ${{ inputs.discover_timeout_seconds }}
         POLL_INTERVAL_SECONDS: ${{ inputs.poll_interval_seconds }}
       run: bash ${{ github.action_path }}/discover-run.sh
