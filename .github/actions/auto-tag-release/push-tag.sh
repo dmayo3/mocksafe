@@ -53,6 +53,47 @@ while [ $ELAPSED -lt $MAX_WAIT ]; do
   ELAPSED=$((ELAPSED + INTERVAL))
 done
 
-echo "⚠️  Could not locate the triggered workflow run"
+echo "⚠️  Could not locate the triggered workflow run from tag push"
+echo "🔁 Falling back to manual publish workflow dispatch..."
+
+if gh workflow run publish.yaml --ref main; then
+  echo "✅ Manual publish workflow dispatch requested"
+else
+  echo "⚠️  Failed to dispatch publish workflow manually"
+  echo "run_id=" >> "$GITHUB_OUTPUT"
+  echo "run_url=" >> "$GITHUB_OUTPUT"
+  exit 0
+fi
+
+echo "⏳ Waiting for manually dispatched publish workflow to appear..."
+
+MAX_WAIT=90
+INTERVAL=3
+ELAPSED=0
+RUN_ID=""
+
+while [ $ELAPSED -lt $MAX_WAIT ]; do
+  RUN_ID=$(gh run list \
+    --workflow publish.yaml \
+    --status in_progress,queued \
+    --json databaseId,createdAt \
+    --limit 1 \
+    -q '.[0].databaseId' 2>/dev/null || echo "")
+
+  if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+    echo "✅ Found manually dispatched publish workflow run: ${RUN_ID}"
+    echo "run_id=${RUN_ID}" >> "$GITHUB_OUTPUT"
+
+    REPO="${GITHUB_REPOSITORY}"
+    RUN_URL="https://github.com/${REPO}/actions/runs/${RUN_ID}"
+    echo "run_url=${RUN_URL}" >> "$GITHUB_OUTPUT"
+    exit 0
+  fi
+
+  sleep $INTERVAL
+  ELAPSED=$((ELAPSED + INTERVAL))
+done
+
+echo "⚠️  Could not locate the manually dispatched workflow run"
 echo "run_id=" >> "$GITHUB_OUTPUT"
 echo "run_url=" >> "$GITHUB_OUTPUT"
