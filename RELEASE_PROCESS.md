@@ -17,7 +17,7 @@ gh workflow run release.yaml --field bump_type=minor --field prerelease_type=bet
 gh workflow run release.yaml --field custom_version=2.0.0 --field dry_run=false
 ```
 
-### GitHub UI (clicky-click)
+### GitHub UI
 
 - Release workflow page: https://github.com/dmayo3/mocksafe/actions/workflows/release.yaml
 - Publish workflow page: https://github.com/dmayo3/mocksafe/actions/workflows/publish.yaml
