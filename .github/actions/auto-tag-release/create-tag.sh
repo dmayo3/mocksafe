@@ -3,7 +3,7 @@ set -euo pipefail
 
 VERSION="${VERSION:?}"
 
-TAG_NAME="v${VERSION}"
+TAG_NAME="${VERSION}"
 
 echo "🏷️  Creating annotated tag: ${TAG_NAME}"
 git tag -a "${TAG_NAME}" -m "Release ${TAG_NAME}" || {

@@ -30,10 +30,8 @@ else
   echo "Action: Merging PR #$PR_NUMBER for version $VERSION"
   echo ""
 
-  # TODO: Uncomment when ready for production
-  # gh pr merge "$PR_NUMBER" --squash --delete-branch
+  gh pr merge "$PR_NUMBER" --squash --delete-branch
 
-  echo "⚠️ Merge commands are currently commented out for safety"
-  echo "Uncomment the merge command when ready for production use"
-  echo "action_taken=merge_not_executed" >> "$GITHUB_OUTPUT"
+  echo "✅ PR #$PR_NUMBER merged and branch deleted"
+  echo "action_taken=merged" >> "$GITHUB_OUTPUT"
 fi
