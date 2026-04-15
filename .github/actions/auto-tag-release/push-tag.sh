@@ -4,7 +4,7 @@ set -euo pipefail
 VERSION="${VERSION:?}"
 GH_TOKEN="${GH_TOKEN:?}"
 
-TAG_NAME="v${VERSION}"
+TAG_NAME="${VERSION}"
 
 echo "🚀 Pushing tag to origin..."
 if git push origin "${TAG_NAME}"; then

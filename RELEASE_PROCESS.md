@@ -22,6 +22,6 @@ After PR merges, create tag and deploy manually.
 3. Commit and push
 4. Create PR via GitHub
 5. After merge:
-   - Tag: `git tag vX.Y.Z && git push --tags`
+   - Tag: `git tag X.Y.Z && git push --tags`
    - Deploy via GitHub Release UI
    - Activate ReadTheDocs version
