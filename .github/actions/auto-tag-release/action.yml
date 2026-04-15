@@ -1,12 +1,12 @@
 name: Auto-Tag Release
-description: Create git tag and push to trigger publish workflow
+description: Create git tag, dispatch publish workflow, and validate dry-run behavior
 
 inputs:
   version:
     description: Version to tag (e.g., "1.2.3" or "1.2.3-beta")
     required: true
   dry_run:
-    description: If true, cancel triggered workflow and clean up tag after testing
+    description: If true, wait for publish workflow success, then clean up tag
     required: false
     default: "true"
   github_token:
@@ -37,7 +37,7 @@ runs:
         VERSION: ${{ inputs.version }}
       run: ${{ github.action_path }}/create-tag.sh
 
-    - name: Push tag and find workflow
+    - name: Push tag and dispatch publish workflow
       id: push-tag
       shell: bash
       env:
@@ -48,7 +48,7 @@ runs:
 
     - name: Dry-run cleanup
       id: cleanup
-      if: ${{ always() && inputs.dry_run == 'true' }}
+      if: ${{ always() && inputs.dry_run == 'true' && steps.create-tag.outputs.tag_name != '' }}
       shell: bash
       env:
         TAG_NAME: ${{ steps.create-tag.outputs.tag_name }}
@@ -74,4 +74,4 @@ runs:
       env:
         TAG: ${{ steps.create-tag.outputs.tag_name }}
       run: |
-        echo "✅ Dry-run completed - tag $TAG was created, tested, and cleaned up"
+        echo "✅ Dry-run completed - publish workflow succeeded and tag $TAG was cleaned up"
