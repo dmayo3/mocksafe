@@ -5,11 +5,15 @@ REF="${REF:?REF is required}"
 WORKFLOW_FILE="${WORKFLOW_FILE:-publish.yaml}"
 DISCOVER_TIMEOUT_SECONDS="${DISCOVER_TIMEOUT_SECONDS:-120}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-5}"
+DISPATCHED_AT="${DISPATCHED_AT:-}"
 
 elapsed=0
 run_id=""
 
 echo "⏳ Waiting for dispatched workflow run to appear for ref ${REF}..."
+if [ -n "${DISPATCHED_AT}" ]; then
+  echo "🔎 Filtering runs created at or after dispatch time: ${DISPATCHED_AT}"
+fi
 
 while [ "$elapsed" -lt "$DISCOVER_TIMEOUT_SECONDS" ]; do
   run_id="$(gh run list \
@@ -17,7 +21,9 @@ while [ "$elapsed" -lt "$DISCOVER_TIMEOUT_SECONDS" ]; do
     --event workflow_dispatch \
     --json databaseId,headBranch,createdAt \
     --limit 50 \
-    --jq ".[] | select(.headBranch==\"${REF}\") | .databaseId" | head -n 1 || true)"
+    | jq -r --arg ref "${REF}" --arg dispatched_at "${DISPATCHED_AT}" \
+      '.[] | select(.headBranch == $ref and ($dispatched_at == "" or .createdAt >= $dispatched_at)) | .databaseId' \
+    | head -n 1 || true)"
 
   if [ -n "${run_id}" ] && [ "${run_id}" != "null" ]; then
     break
