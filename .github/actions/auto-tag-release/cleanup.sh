@@ -3,31 +3,35 @@ set -euo pipefail
 
 TAG_NAME="${TAG_NAME:?}"
 GH_TOKEN="${GH_TOKEN:?}"
+RUN_ID="${RUN_ID:-}"
 
 echo "🧪 DRY RUN MODE - Starting cleanup"
 echo ""
 
-# Wait for the workflow run to appear (max 90 seconds)
-echo "⏳ Waiting for publish workflow to start (up to 90 seconds)..."
-MAX_WAIT=90
-INTERVAL=3
-ELAPSED=0
-RUN_ID=""
+# Use provided workflow run when available; otherwise discover it (max 90 seconds)
+if [[ -n "$RUN_ID" ]] && [[ "$RUN_ID" != "null" ]]; then
+  echo "✅ Using provided publish workflow run: $RUN_ID"
+else
+  echo "⏳ Waiting for publish workflow to start (up to 90 seconds)..."
+  MAX_WAIT=90
+  INTERVAL=3
+  ELAPSED=0
 
-while [ $ELAPSED -lt $MAX_WAIT ]; do
-  RUN_ID=$(gh run list \
-    --workflow publish.yaml \
-    --json databaseId,status \
-    --jq '.[0].databaseId' 2>/dev/null || echo "")
+  while [ $ELAPSED -lt $MAX_WAIT ]; do
+    RUN_ID=$(gh run list \
+      --workflow publish.yaml \
+      --json databaseId,status \
+      --jq '.[0].databaseId' 2>/dev/null || echo "")
 
-  if [[ -n "$RUN_ID" ]] && [[ "$RUN_ID" != "null" ]]; then
-    echo "✅ Found publish workflow run: $RUN_ID"
-    break
-  fi
+    if [[ -n "$RUN_ID" ]] && [[ "$RUN_ID" != "null" ]]; then
+      echo "✅ Found publish workflow run: $RUN_ID"
+      break
+    fi
 
-  sleep $INTERVAL
-  ELAPSED=$((ELAPSED + INTERVAL))
-done
+    sleep $INTERVAL
+    ELAPSED=$((ELAPSED + INTERVAL))
+  done
+fi
 
 if [[ -n "$RUN_ID" ]] && [[ "$RUN_ID" != "null" ]]; then
   echo "⏳ Waiting 30 seconds for workflow jobs to initialize..."
@@ -40,7 +44,8 @@ if [[ -n "$RUN_ID" ]] && [[ "$RUN_ID" != "null" ]]; then
     echo "⚠️  Could not cancel workflow (may have already completed)"
   fi
 else
-  echo "⚠️  Could not find workflow run (cleanup will continue)"
+  echo "❌ Could not find publish workflow run for cleanup"
+  exit 1
 fi
 
 echo ""

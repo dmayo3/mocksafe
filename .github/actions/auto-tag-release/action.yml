@@ -43,6 +43,7 @@ runs:
       env:
         VERSION: ${{ inputs.version }}
         GH_TOKEN: ${{ inputs.github_token }}
+        DRY_RUN: ${{ inputs.dry_run }}
       run: ${{ github.action_path }}/push-tag.sh
 
     - name: Dry-run cleanup
