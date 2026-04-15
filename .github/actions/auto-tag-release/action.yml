@@ -50,7 +50,7 @@ runs:
       with:
         ref: ${{ steps.create-tag.outputs.tag_name }}
         dry_run: ${{ inputs.dry_run == 'true' && 'true' || 'false' }}
-        wait_for_completion: ${{ inputs.dry_run == 'true' && 'true' || 'false' }}
+        wait_for_completion: "true"
         github_token: ${{ inputs.github_token }}
 
     - name: Dry-run cleanup
@@ -67,9 +67,13 @@ runs:
       shell: bash
       env:
         TAG: ${{ steps.create-tag.outputs.tag_name }}
+        RUN_URL: ${{ steps.dispatch-publish.outputs.run_url }}
       run: |
         echo "✅ Tag ${TAG} created and pushed"
-        echo "📢 Publish workflow dispatch requested on ref ${TAG}"
+        echo "✅ Publish workflow completed successfully"
+        if [ -n "$RUN_URL" ]; then
+          echo "📢 Publish workflow: $RUN_URL"
+        fi
 
     - name: Dry-run summary
       if: inputs.dry_run == 'true'
