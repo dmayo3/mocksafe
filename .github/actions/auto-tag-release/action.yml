@@ -22,7 +22,7 @@ outputs:
     value: ${{ steps.push-tag.outputs.pushed }}
   workflow_run_url:
     description: URL to the triggered publish workflow run
-    value: ${{ steps.push-tag.outputs.run_url }}
+    value: ${{ inputs.dry_run == 'true' && steps.dispatch-publish-dry-run.outputs.run_url || '' }}
   cleanup_status:
     description: Status of dry-run cleanup
     value: ${{ steps.cleanup.outputs.status }}
@@ -37,14 +37,32 @@ runs:
         VERSION: ${{ inputs.version }}
       run: ${{ github.action_path }}/create-tag.sh
 
-    - name: Push tag and dispatch publish workflow
+    - name: Push tag
       id: push-tag
       shell: bash
       env:
         VERSION: ${{ inputs.version }}
-        GH_TOKEN: ${{ inputs.github_token }}
-        DRY_RUN: ${{ inputs.dry_run }}
       run: ${{ github.action_path }}/push-tag.sh
+
+    - name: Dispatch and wait for dry-run publish workflow
+      id: dispatch-publish-dry-run
+      if: ${{ inputs.dry_run == 'true' }}
+      uses: ./.github/actions/dispatch-publish-workflow
+      with:
+        ref: ${{ steps.create-tag.outputs.tag_name }}
+        dry_run: "true"
+        github_token: ${{ inputs.github_token }}
+
+    - name: Dispatch publish workflow
+      if: ${{ inputs.dry_run != 'true' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        TAG_NAME: ${{ steps.create-tag.outputs.tag_name }}
+      run: |
+        echo "🚀 Dispatching publish workflow on ref ${TAG_NAME}..."
+        gh workflow run publish.yaml --ref "${TAG_NAME}" --field dry_run=false
+        echo "✅ Publish workflow dispatch requested"
 
     - name: Dry-run cleanup
       id: cleanup
@@ -52,7 +70,6 @@ runs:
       shell: bash
       env:
         TAG_NAME: ${{ steps.create-tag.outputs.tag_name }}
-        RUN_ID: ${{ steps.push-tag.outputs.run_id }}
         GH_TOKEN: ${{ inputs.github_token }}
       run: ${{ github.action_path }}/cleanup.sh
 
@@ -61,12 +78,9 @@ runs:
       shell: bash
       env:
         TAG: ${{ steps.create-tag.outputs.tag_name }}
-        RUN_URL: ${{ steps.push-tag.outputs.run_url }}
       run: |
         echo "✅ Tag ${TAG} created and pushed"
-        if [ -n "$RUN_URL" ]; then
-          echo "📢 Publish workflow: $RUN_URL"
-        fi
+        echo "📢 Publish workflow dispatch requested on ref ${TAG}"
 
     - name: Dry-run summary
       if: inputs.dry_run == 'true'

@@ -1,0 +1,140 @@
+name: Dispatch Publish Workflow
+description: Dispatch publish workflow on a ref and wait for successful completion
+
+inputs:
+  ref:
+    description: Git ref to run publish workflow against (typically a tag like 0.11.0-beta)
+    required: true
+  dry_run:
+    description: Whether to run publish workflow in dry-run mode
+    required: false
+    default: "false"
+  github_token:
+    description: GitHub token for workflow dispatch and run inspection
+    required: true
+  workflow_file:
+    description: Workflow file name to dispatch
+    required: false
+    default: "publish.yaml"
+  discover_timeout_seconds:
+    description: Max seconds to wait for dispatched workflow run to appear
+    required: false
+    default: "120"
+  completion_timeout_seconds:
+    description: Max seconds to wait for workflow run completion
+    required: false
+    default: "3600"
+  poll_interval_seconds:
+    description: Poll interval in seconds while waiting
+    required: false
+    default: "5"
+
+outputs:
+  run_id:
+    description: Dispatched workflow run id
+    value: ${{ steps.discover.outputs.run_id }}
+  run_url:
+    description: URL of dispatched workflow run
+    value: ${{ steps.discover.outputs.run_url }}
+  conclusion:
+    description: Final workflow conclusion
+    value: ${{ steps.wait.outputs.conclusion }}
+
+runs:
+  using: composite
+  steps:
+    - name: Dispatch publish workflow
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        REF: ${{ inputs.ref }}
+        DRY_RUN: ${{ inputs.dry_run }}
+        WORKFLOW_FILE: ${{ inputs.workflow_file }}
+      run: |
+        set -euo pipefail
+
+        echo "🚀 Dispatching ${WORKFLOW_FILE} on ref ${REF} (dry_run=${DRY_RUN})..."
+        gh workflow run "${WORKFLOW_FILE}" --ref "${REF}" --field dry_run="${DRY_RUN}"
+        echo "✅ Dispatch requested"
+
+    - name: Discover dispatched run
+      id: discover
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        REF: ${{ inputs.ref }}
+        WORKFLOW_FILE: ${{ inputs.workflow_file }}
+        DISCOVER_TIMEOUT_SECONDS: ${{ inputs.discover_timeout_seconds }}
+        POLL_INTERVAL_SECONDS: ${{ inputs.poll_interval_seconds }}
+      run: |
+        set -euo pipefail
+
+        elapsed=0
+        run_id=""
+
+        echo "⏳ Waiting for dispatched workflow run to appear..."
+
+        while [ "$elapsed" -lt "$DISCOVER_TIMEOUT_SECONDS" ]; do
+          run_id="$(gh run list \
+            --workflow "${WORKFLOW_FILE}" \
+            --event workflow_dispatch \
+            --json databaseId,headBranch,createdAt \
+            --limit 50 \
+            --jq ".[] | select(.headBranch==\"${REF}\") | .databaseId" | head -n 1 || true)"
+
+          if [ -n "${run_id}" ] && [ "${run_id}" != "null" ]; then
+            break
+          fi
+
+          sleep "${POLL_INTERVAL_SECONDS}"
+          elapsed=$((elapsed + POLL_INTERVAL_SECONDS))
+        done
+
+        if [ -z "${run_id}" ] || [ "${run_id}" = "null" ]; then
+          echo "❌ Could not find dispatched workflow run for ref ${REF} within ${DISCOVER_TIMEOUT_SECONDS}s"
+          exit 1
+        fi
+
+        run_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${run_id}"
+        echo "✅ Found workflow run: ${run_id}"
+        echo "run_id=${run_id}" >> "${GITHUB_OUTPUT}"
+        echo "run_url=${run_url}" >> "${GITHUB_OUTPUT}"
+
+    - name: Wait for workflow success
+      id: wait
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        RUN_ID: ${{ steps.discover.outputs.run_id }}
+        COMPLETION_TIMEOUT_SECONDS: ${{ inputs.completion_timeout_seconds }}
+        POLL_INTERVAL_SECONDS: ${{ inputs.poll_interval_seconds }}
+      run: |
+        set -euo pipefail
+
+        elapsed=0
+
+        echo "⏳ Waiting for run ${RUN_ID} to complete successfully..."
+
+        while [ "$elapsed" -lt "$COMPLETION_TIMEOUT_SECONDS" ]; do
+          status="$(gh run view "${RUN_ID}" --json status,conclusion --jq '.status' || true)"
+          conclusion="$(gh run view "${RUN_ID}" --json status,conclusion --jq '.conclusion' || true)"
+
+          if [ "${status}" = "completed" ]; then
+            echo "conclusion=${conclusion}" >> "${GITHUB_OUTPUT}"
+
+            if [ "${conclusion}" = "success" ]; then
+              echo "✅ Workflow completed successfully"
+              exit 0
+            fi
+
+            echo "❌ Workflow completed with conclusion: ${conclusion}"
+            exit 1
+          fi
+
+          sleep "${POLL_INTERVAL_SECONDS}"
+          elapsed=$((elapsed + POLL_INTERVAL_SECONDS))
+        done
+
+        echo "conclusion=timed_out" >> "${GITHUB_OUTPUT}"
+        echo "❌ Timed out waiting for workflow completion (${COMPLETION_TIMEOUT_SECONDS}s)"
+        exit 1
