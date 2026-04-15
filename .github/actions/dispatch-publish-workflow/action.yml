@@ -41,18 +41,14 @@ runs:
   using: composite
   steps:
     - name: Dispatch publish workflow
+      id: dispatch
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github_token }}
         REF: ${{ inputs.ref }}
         DRY_RUN: ${{ inputs.dry_run }}
         WORKFLOW_FILE: ${{ inputs.workflow_file }}
-      run: |
-        set -euo pipefail
-
-        echo "🚀 Dispatching ${WORKFLOW_FILE} on ref ${REF} (dry_run=${DRY_RUN})..."
-        gh workflow run "${WORKFLOW_FILE}" --ref "${REF}" --field dry_run="${DRY_RUN}"
-        echo "✅ Dispatch requested"
+      run: bash ${{ github.action_path }}/dispatch-workflow.sh
 
     - name: Discover dispatched run
       id: discover
@@ -63,39 +59,7 @@ runs:
         WORKFLOW_FILE: ${{ inputs.workflow_file }}
         DISCOVER_TIMEOUT_SECONDS: ${{ inputs.discover_timeout_seconds }}
         POLL_INTERVAL_SECONDS: ${{ inputs.poll_interval_seconds }}
-      run: |
-        set -euo pipefail
-
-        elapsed=0
-        run_id=""
-
-        echo "⏳ Waiting for dispatched workflow run to appear..."
-
-        while [ "$elapsed" -lt "$DISCOVER_TIMEOUT_SECONDS" ]; do
-          run_id="$(gh run list \
-            --workflow "${WORKFLOW_FILE}" \
-            --event workflow_dispatch \
-            --json databaseId,headBranch,createdAt \
-            --limit 50 \
-            --jq ".[] | select(.headBranch==\"${REF}\") | .databaseId" | head -n 1 || true)"
-
-          if [ -n "${run_id}" ] && [ "${run_id}" != "null" ]; then
-            break
-          fi
-
-          sleep "${POLL_INTERVAL_SECONDS}"
-          elapsed=$((elapsed + POLL_INTERVAL_SECONDS))
-        done
-
-        if [ -z "${run_id}" ] || [ "${run_id}" = "null" ]; then
-          echo "❌ Could not find dispatched workflow run for ref ${REF} within ${DISCOVER_TIMEOUT_SECONDS}s"
-          exit 1
-        fi
-
-        run_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${run_id}"
-        echo "✅ Found workflow run: ${run_id}"
-        echo "run_id=${run_id}" >> "${GITHUB_OUTPUT}"
-        echo "run_url=${run_url}" >> "${GITHUB_OUTPUT}"
+      run: bash ${{ github.action_path }}/discover-run.sh
 
     - name: Wait for workflow success
       id: wait
@@ -103,14 +67,5 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github_token }}
         RUN_ID: ${{ steps.discover.outputs.run_id }}
-
         POLL_INTERVAL_SECONDS: ${{ inputs.poll_interval_seconds }}
-      run: |
-        set -euo pipefail
-
-        echo "⏳ Waiting for run ${RUN_ID} to complete successfully..."
-        gh run watch "${RUN_ID}" --exit-status --interval "${POLL_INTERVAL_SECONDS}"
-
-        conclusion="$(gh run view "${RUN_ID}" --json conclusion --jq '.conclusion' || true)"
-        echo "conclusion=${conclusion}" >> "${GITHUB_OUTPUT}"
-        echo "✅ Workflow completed successfully"
+      run: bash ${{ github.action_path }}/wait-for-run.sh
