@@ -1,6 +1,12 @@
 name: Publish to PyPI / TestPyPi
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Skip upload jobs (build/verify only)"
+        required: false
+        type: boolean
+        default: false
   push:
     tags:
       - "0.*"
@@ -78,6 +84,7 @@ jobs:
     needs:
       - build
       - verify-dist
+    if: ${{ github.event.inputs.dry_run != 'true' }}
     permissions:
       contents: read
       id-token: write # Required for trusted publishing
@@ -101,6 +108,7 @@ jobs:
     needs:
       - build
       - verify-dist
+    if: ${{ github.event.inputs.dry_run != 'true' }}
     permissions:
       contents: read
       id-token: write # Required for trusted publishing

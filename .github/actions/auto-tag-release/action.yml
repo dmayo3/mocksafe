@@ -1,12 +1,12 @@
 name: Auto-Tag Release
-description: Create git tag and push to trigger publish workflow
+description: Create git tag, dispatch publish workflow, and validate dry-run behavior
 
 inputs:
   version:
     description: Version to tag (e.g., "1.2.3" or "1.2.3-beta")
     required: true
   dry_run:
-    description: If true, cancel triggered workflow and clean up tag after testing
+    description: If true, wait for publish workflow success, then clean up tag
     required: false
     default: "true"
   github_token:
@@ -22,7 +22,7 @@ outputs:
     value: ${{ steps.push-tag.outputs.pushed }}
   workflow_run_url:
     description: URL to the triggered publish workflow run
-    value: ${{ steps.push-tag.outputs.run_url }}
+    value: ${{ steps.dispatch-publish.outputs.run_url }}
   cleanup_status:
     description: Status of dry-run cleanup
     value: ${{ steps.cleanup.outputs.status }}
@@ -37,21 +37,27 @@ runs:
         VERSION: ${{ inputs.version }}
       run: ${{ github.action_path }}/create-tag.sh
 
-    - name: Push tag and find workflow
+    - name: Push tag
       id: push-tag
       shell: bash
       env:
         VERSION: ${{ inputs.version }}
-        GH_TOKEN: ${{ inputs.github_token }}
       run: ${{ github.action_path }}/push-tag.sh
+
+    - name: Dispatch publish workflow
+      id: dispatch-publish
+      uses: ./.github/actions/dispatch-publish-workflow
+      with:
+        ref: ${{ steps.create-tag.outputs.tag_name }}
+        dry_run: ${{ inputs.dry_run == 'true' && 'true' || 'false' }}
+        github_token: ${{ inputs.github_token }}
 
     - name: Dry-run cleanup
       id: cleanup
-      if: inputs.dry_run == 'true'
+      if: ${{ always() && inputs.dry_run == 'true' && steps.create-tag.outputs.tag_name != '' }}
       shell: bash
       env:
         TAG_NAME: ${{ steps.create-tag.outputs.tag_name }}
-        RUN_ID: ${{ steps.push-tag.outputs.run_id }}
         GH_TOKEN: ${{ inputs.github_token }}
       run: ${{ github.action_path }}/cleanup.sh
 
@@ -60,9 +66,10 @@ runs:
       shell: bash
       env:
         TAG: ${{ steps.create-tag.outputs.tag_name }}
-        RUN_URL: ${{ steps.push-tag.outputs.run_url }}
+        RUN_URL: ${{ steps.dispatch-publish.outputs.run_url }}
       run: |
         echo "✅ Tag ${TAG} created and pushed"
+        echo "✅ Publish workflow completed successfully"
         if [ -n "$RUN_URL" ]; then
           echo "📢 Publish workflow: $RUN_URL"
         fi
@@ -73,4 +80,4 @@ runs:
       env:
         TAG: ${{ steps.create-tag.outputs.tag_name }}
       run: |
-        echo "✅ Dry-run completed - tag $TAG was created, tested, and cleaned up"
+        echo "✅ Dry-run completed - publish workflow succeeded and tag $TAG was cleaned up"

@@ -1,0 +1,71 @@
+name: Dispatch Publish Workflow
+description: Dispatch publish workflow on a ref and wait for successful completion
+
+inputs:
+  ref:
+    description: Git ref to run publish workflow against (typically a tag like 0.11.0-beta)
+    required: true
+  dry_run:
+    description: Whether to run publish workflow in dry-run mode
+    required: false
+    default: "false"
+  github_token:
+    description: GitHub token for workflow dispatch and run inspection
+    required: true
+  workflow_file:
+    description: Workflow file name to dispatch
+    required: false
+    default: "publish.yaml"
+  discover_timeout_seconds:
+    description: Max seconds to wait for dispatched workflow run to appear
+    required: false
+    default: "120"
+
+  poll_interval_seconds:
+    description: Poll interval in seconds while waiting
+    required: false
+    default: "5"
+
+outputs:
+  run_id:
+    description: Dispatched workflow run id
+    value: ${{ steps.discover.outputs.run_id }}
+  run_url:
+    description: URL of dispatched workflow run
+    value: ${{ steps.discover.outputs.run_url }}
+  conclusion:
+    description: Final workflow conclusion
+    value: ${{ steps.wait.outputs.conclusion }}
+
+runs:
+  using: composite
+  steps:
+    - name: Dispatch publish workflow
+      id: dispatch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        REF: ${{ inputs.ref }}
+        DRY_RUN: ${{ inputs.dry_run }}
+        WORKFLOW_FILE: ${{ inputs.workflow_file }}
+      run: bash ${{ github.action_path }}/dispatch-workflow.sh
+
+    - name: Discover dispatched run
+      id: discover
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        REF: ${{ inputs.ref }}
+        WORKFLOW_FILE: ${{ inputs.workflow_file }}
+        DISCOVER_TIMEOUT_SECONDS: ${{ inputs.discover_timeout_seconds }}
+        POLL_INTERVAL_SECONDS: ${{ inputs.poll_interval_seconds }}
+      run: bash ${{ github.action_path }}/discover-run.sh
+
+    - name: Wait for workflow success
+      id: wait
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
+        RUN_ID: ${{ steps.discover.outputs.run_id }}
+        POLL_INTERVAL_SECONDS: ${{ inputs.poll_interval_seconds }}
+      run: bash ${{ github.action_path }}/wait-for-run.sh
