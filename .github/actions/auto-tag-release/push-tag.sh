@@ -57,6 +57,5 @@ while [ $ELAPSED -lt $MAX_WAIT ]; do
   ELAPSED=$((ELAPSED + INTERVAL))
 done
 
-echo "⚠️  Could not locate the dispatched publish workflow run"
-echo "run_id=" >> "$GITHUB_OUTPUT"
-echo "run_url=" >> "$GITHUB_OUTPUT"
+echo "❌ Could not locate the dispatched publish workflow run within ${MAX_WAIT}s"
+exit 1

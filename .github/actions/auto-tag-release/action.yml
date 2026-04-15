@@ -48,7 +48,7 @@ runs:
 
     - name: Dry-run cleanup
       id: cleanup
-      if: inputs.dry_run == 'true'
+      if: ${{ always() && inputs.dry_run == 'true' }}
       shell: bash
       env:
         TAG_NAME: ${{ steps.create-tag.outputs.tag_name }}

@@ -8,44 +8,21 @@ RUN_ID="${RUN_ID:-}"
 echo "🧪 DRY RUN MODE - Starting cleanup"
 echo ""
 
-# Use provided workflow run when available; otherwise discover it (max 90 seconds)
-if [[ -n "$RUN_ID" ]] && [[ "$RUN_ID" != "null" ]]; then
-  echo "✅ Using provided publish workflow run: $RUN_ID"
-else
-  echo "⏳ Waiting for publish workflow to start (up to 90 seconds)..."
-  MAX_WAIT=90
-  INTERVAL=3
-  ELAPSED=0
-
-  while [ $ELAPSED -lt $MAX_WAIT ]; do
-    RUN_ID=$(gh run list \
-      --workflow publish.yaml \
-      --json databaseId,status \
-      --jq '.[0].databaseId' 2>/dev/null || echo "")
-
-    if [[ -n "$RUN_ID" ]] && [[ "$RUN_ID" != "null" ]]; then
-      echo "✅ Found publish workflow run: $RUN_ID"
-      break
-    fi
-
-    sleep $INTERVAL
-    ELAPSED=$((ELAPSED + INTERVAL))
-  done
+# Require provided workflow run id from the push step
+if [[ -z "$RUN_ID" ]] || [[ "$RUN_ID" == "null" ]]; then
+  echo "❌ Missing publish workflow run id for cleanup"
+  exit 1
 fi
 
-if [[ -n "$RUN_ID" ]] && [[ "$RUN_ID" != "null" ]]; then
-  echo "⏳ Waiting 30 seconds for workflow jobs to initialize..."
-  sleep 30
+echo "✅ Using provided publish workflow run: $RUN_ID"
+echo "⏳ Waiting 30 seconds for workflow jobs to initialize..."
+sleep 30
 
-  echo "🛑 Canceling workflow run..."
-  if gh run cancel "$RUN_ID"; then
-    echo "✅ Workflow canceled"
-  else
-    echo "⚠️  Could not cancel workflow (may have already completed)"
-  fi
+echo "🛑 Canceling workflow run..."
+if gh run cancel "$RUN_ID"; then
+  echo "✅ Workflow canceled"
 else
-  echo "❌ Could not find publish workflow run for cleanup"
-  exit 1
+  echo "⚠️  Could not cancel workflow (may have already completed)"
 fi
 
 echo ""
