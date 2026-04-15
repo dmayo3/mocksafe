@@ -20,10 +20,7 @@ inputs:
     description: Max seconds to wait for dispatched workflow run to appear
     required: false
     default: "120"
-  completion_timeout_seconds:
-    description: Max seconds to wait for workflow run completion
-    required: false
-    default: "3600"
+
   poll_interval_seconds:
     description: Poll interval in seconds while waiting
     required: false
@@ -106,35 +103,14 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github_token }}
         RUN_ID: ${{ steps.discover.outputs.run_id }}
-        COMPLETION_TIMEOUT_SECONDS: ${{ inputs.completion_timeout_seconds }}
+
         POLL_INTERVAL_SECONDS: ${{ inputs.poll_interval_seconds }}
       run: |
         set -euo pipefail
 
-        elapsed=0
-
         echo "⏳ Waiting for run ${RUN_ID} to complete successfully..."
+        gh run watch "${RUN_ID}" --exit-status --interval "${POLL_INTERVAL_SECONDS}"
 
-        while [ "$elapsed" -lt "$COMPLETION_TIMEOUT_SECONDS" ]; do
-          status="$(gh run view "${RUN_ID}" --json status,conclusion --jq '.status' || true)"
-          conclusion="$(gh run view "${RUN_ID}" --json status,conclusion --jq '.conclusion' || true)"
-
-          if [ "${status}" = "completed" ]; then
-            echo "conclusion=${conclusion}" >> "${GITHUB_OUTPUT}"
-
-            if [ "${conclusion}" = "success" ]; then
-              echo "✅ Workflow completed successfully"
-              exit 0
-            fi
-
-            echo "❌ Workflow completed with conclusion: ${conclusion}"
-            exit 1
-          fi
-
-          sleep "${POLL_INTERVAL_SECONDS}"
-          elapsed=$((elapsed + POLL_INTERVAL_SECONDS))
-        done
-
-        echo "conclusion=timed_out" >> "${GITHUB_OUTPUT}"
-        echo "❌ Timed out waiting for workflow completion (${COMPLETION_TIMEOUT_SECONDS}s)"
-        exit 1
+        conclusion="$(gh run view "${RUN_ID}" --json conclusion --jq '.conclusion' || true)"
+        echo "conclusion=${conclusion}" >> "${GITHUB_OUTPUT}"
+        echo "✅ Workflow completed successfully"
