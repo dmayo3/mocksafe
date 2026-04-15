@@ -1,5 +1,5 @@
 name: Dispatch Publish Workflow
-description: Dispatch publish workflow on a ref and wait for successful completion
+description: Dispatch publish workflow on a ref, with optional wait for successful completion
 
 inputs:
   ref:
@@ -24,6 +24,10 @@ inputs:
     description: Max seconds to wait for workflow run completion
     required: false
     default: "3600"
+  wait_for_completion:
+    description: Whether to wait for workflow completion and require success
+    required: false
+    default: "true"
   poll_interval_seconds:
     description: Poll interval in seconds while waiting
     required: false
@@ -37,8 +41,8 @@ outputs:
     description: URL of dispatched workflow run
     value: ${{ steps.discover.outputs.run_url }}
   conclusion:
-    description: Final workflow conclusion
-    value: ${{ steps.wait.outputs.conclusion }}
+    description: Final workflow conclusion (or "not_waited" when wait is disabled)
+    value: ${{ inputs.wait_for_completion == 'true' && steps.wait.outputs.conclusion || 'not_waited' }}
 
 runs:
   using: composite
@@ -102,6 +106,7 @@ runs:
 
     - name: Wait for workflow success
       id: wait
+      if: ${{ inputs.wait_for_completion == 'true' }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github_token }}
