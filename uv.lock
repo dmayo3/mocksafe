@@ -835,6 +835,7 @@ dev = [
     { name = "pylint" },
     { name = "pytest" },
     { name = "pytest-sugar" },
+    { name = "requests" },
     { name = "sphinx-rtd-theme" },
 ]
 
@@ -864,6 +865,7 @@ dev = [
     { name = "pylint", specifier = ">=3.3.0" },
     { name = "pytest", specifier = ">=8.4.0" },
     { name = "pytest-sugar", specifier = ">=1.0.0" },
+    { name = "requests", specifier = ">=2.32.0" },
     { name = "sphinx-rtd-theme", specifier = ">=1.5.0" },
 ]
 
