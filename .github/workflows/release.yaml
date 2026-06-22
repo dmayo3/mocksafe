@@ -36,7 +36,7 @@ jobs:
       version: ${{ steps.bump.outputs.version }}
       branch: ${{ steps.bump.outputs.branch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -83,7 +83,7 @@ jobs:
     outputs:
       merge_status: ${{ steps.merge.outputs.action_taken }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Auto-merge release PR
         id: merge
@@ -104,7 +104,7 @@ jobs:
       contents: write
       actions: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 0
